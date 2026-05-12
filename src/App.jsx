@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { collection, getDocs } from 'firebase/firestore'
 import { db } from './config/firebase'
+import { Dashboard } from './pages/Dashboard'
 
 
 function App() {
+  return <Dashboard />
   const [clinicas, setClinicas] = useState([])
   const [loading, setLoading] = useState(true)
 

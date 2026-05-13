@@ -3,7 +3,8 @@ import { collection, getDocs } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import TabelaProdutos from '../components/TabelaProdutos'
 
-function Dashboard() {
+
+export function Dashboard() {
     const [produtos, setProdutos] = useState([])
     const [loading, setLoading] = useState(true)
 
@@ -12,7 +13,7 @@ function Dashboard() {
     useEffect(() => {
         async function carregarProdutos() {
             try {
-                const produtosRef = collection(db, 'fornecedores/${FORNECEDOR_ID}/produtos')
+                const produtosRef = collection(db, `fornecedores/${FORNECEDOR_ID}/produtos`)
                 const snapshot = await getDocs(produtosRef)
     
                 const dados = snapshot.docs.map(doc => ({
@@ -55,5 +56,71 @@ function Dashboard() {
         return nivel >= 0.2 && nivel < 0.5
     }).length
 
-    
+   return (
+    <div className="container-fluid py-4">
+      {/* Header */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 className="mb-1">Dashboard - Fornecedor</h2>
+          <p className="text-muted mb-0">Visão geral do estoque de produtos</p>
+        </div>
+      </div>
+
+      {/* Cards de resumo */}
+      <div className="row mb-4">
+        <div className="col-md-4">
+          <div className="card border-primary">
+            <div className="card-body">
+              <div className="d-flex justify-content-between align-items-center">
+                <div>
+                  <h6 className="text-muted mb-1">Total de Produtos</h6>
+                  <h3 className="mb-0">{totalProdutos}</h3>
+                </div>
+                <div className="text-primary" style={{ fontSize: '2rem' }}>
+                  📦
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-md-4">
+          <div className="card border-warning">
+            <div className="card-body">
+              <div className="d-flex justify-content-between align-items-center">
+                <div>
+                  <h6 className="text-muted mb-1">Em Atenção</h6>
+                  <h3 className="mb-0">{produtosAtencao}</h3>
+                </div>
+                <div className="text-warning" style={{ fontSize: '2rem' }}>
+                  ⚠️
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-md-4">
+          <div className="card border-danger">
+            <div className="card-body">
+              <div className="d-flex justify-content-between align-items-center">
+                <div>
+                  <h6 className="text-muted mb-1">Críticos</h6>
+                  <h3 className="mb-0">{produtosCriticos}</h3>
+                </div>
+                <div className="text-danger" style={{ fontSize: '2rem' }}>
+                  🚨
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabela de produtos */}
+      <TabelaProdutos produtos={produtos} />
+    </div>
+  )
 }
+
+export default Dashboard

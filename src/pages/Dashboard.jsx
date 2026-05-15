@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { collection, getDocs } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import TabelaProdutos from '../components/TabelaProdutos'
-
+import Layout from '../components/Layout/Layout'
 
 export function Dashboard() {
     const [produtos, setProdutos] = useState([])
@@ -56,7 +56,21 @@ export function Dashboard() {
         return nivel >= 0.2 && nivel < 0.5
     }).length
 
+    const headerActions = (
+      <>
+        <button className="btn btn-outline-primary btn-sm">Exportar</button>
+        <button className='btn btn-primary btn-sm'>Novo Produto</button>
+      </>
+    )
+
    return (
+    <Layout 
+      showHeader={true}
+      headerTitle="Dashboard"
+      headerSubtitle="Visão Geral"
+      headerActions={headerActions}
+    >
+
     <div className="container-fluid py-4">
       {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-4">
@@ -120,6 +134,7 @@ export function Dashboard() {
       {/* Tabela de produtos */}
       <TabelaProdutos produtos={produtos} />
     </div>
+    </Layout>
   )
 }
 

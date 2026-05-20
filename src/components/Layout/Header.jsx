@@ -1,20 +1,77 @@
-function Header({ title, subtitle, actions }) {
+import { IoMdSettings, IoMdNotificationsOutline } from 'react-icons/io'
+
+function Header({ title }) {
   return (
-    <div className="bg-white border-bottom shadow-sm mb-4" 
-         style={{ marginLeft: '250px', position: 'sticky', top: 0, zIndex: 100 }}>
-      <div className="container-fluid py-3">
-        <div className="d-flex justify-content-between align-items-center">
-          <div>
-            <h4 className="mb-0">{title}</h4>
-            {subtitle && <p className="text-muted mb-0 small">{subtitle}</p>}
+    <div 
+      style={{
+        height: '80px',
+        backgroundColor: 'white',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0 40px',
+        borderBottom: '1px solid #F0F0F0'
+      }}
+    >
+      <h4 style={{ 
+        margin: 0, 
+        color: 'var(--cor-texto-secundario)', 
+        fontWeight: '400',
+        fontSize: '24px'
+      }}>
+        {title}
+      </h4>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+        {/* Configurações */}
+        <button 
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            color: 'var(--cor-texto-secundario)',
+            display: 'flex',
+            alignItems: 'center'
+          }}
+        >
+          <IoMdSettings size={24} />
+        </button>
+
+        {/* Notificações */}
+        <button 
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            color: 'var(--cor-texto-secundario)',
+            display: 'flex',
+            alignItems: 'center'
+          }}
+        >
+          <IoMdNotificationsOutline size={24} />
+        </button>
+
+        {/* User */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span style={{ color: 'var(--cor-texto)', fontSize: '14px', fontWeight: '500' }}>
+            ADMIN_USER
+          </span>
+          <div 
+            style={{
+              width: '45px',
+              height: '45px',
+              borderRadius: '50%',
+              background: '#718096',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              fontSize: '14px',
+              fontWeight: '600'
+            }}
+          >
+            AU
           </div>
-          
-          {/* Ações opcionais (botões, filtros, etc) */}
-          {actions && (
-            <div className="d-flex gap-2">
-              {actions}
-            </div>
-          )}
         </div>
       </div>
     </div>

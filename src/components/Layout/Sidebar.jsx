@@ -1,68 +1,112 @@
 import { Link, useLocation } from 'react-router-dom'
+import { AiOutlineHome, AiOutlineBarChart } from 'react-icons/ai'
+import { IoMdSync } from 'react-icons/io'
+import { MdContentCopy } from 'react-icons/md'
+import { IoMdAdd } from 'react-icons/io'
 
 function Sidebar() {
   const location = useLocation()
 
   const menuItems = [
-    { path: '/', icon: '📊', label: 'Dashboard' },
-    { path: '/produtos', icon: '📦', label: 'Produtos' },
-    { path: '/clinicas', icon: '🏥', label: 'Clínicas' },
-    { path: '/pedidos', icon: '🛒', label: 'Pedidos' },
-    { path: '/alertas', icon: '⚠️', label: 'Alertas' },
-    { path: '/relatorios', icon: '📈', label: 'Relatórios' },
+    { path: '/', icon: <AiOutlineHome size={24} />, label: 'Dashboard' },
+    { path: '/analytics', icon: <AiOutlineBarChart size={24} />, label: 'Analytics' },
+    { path: '/sync', icon: <IoMdSync size={24} />, label: 'Sync' },
+    { path: '/docs', icon: <MdContentCopy size={24} />, label: 'Docs' },
   ]
 
-  const isActive = (path) => {
-    return location.pathname === path
-  }
+  const isActive = (path) => location.pathname === path
 
   return (
-    <div className="d-flex flex-column bg-dark text-white" 
-         style={{ width: '250px', minHeight: '100vh', position: 'fixed', left: 0, top: 0 }}>
-      
-      {/* Logo/Brand */}
-      <div className="p-3 border-bottom border-secondary">
-        <h4 className="mb-0">
-          <span style={{ color: '#4CAF50' }}>Só</span>Sync
-        </h4>
-        <small className="text-muted">Fornecedor</small>
+    <div 
+      style={{
+        width: 'var(--sidebar-width)',
+        minHeight: '100vh',
+        position: 'fixed',
+        left: 0,
+        top: 0,
+        backgroundColor: 'var(--cor-sidebar-bg)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        paddingTop: '20px',
+        zIndex: 1000
+      }}
+    >
+      {/* Logo */}
+      <div 
+        style={{
+          width: '50px',
+          height: '50px',
+          background: 'linear-gradient(135deg, #00D9C0 0%, #00B8A3 100%)',
+          borderRadius: '12px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'white',
+          fontWeight: 'bold',
+          fontSize: '20px',
+          marginBottom: '30px'
+        }}
+      >
+        SY
       </div>
 
+      {/* Botão Adicionar */}
+      <button
+        style={{
+          width: '50px',
+          height: '50px',
+          background: 'linear-gradient(135deg, #00D9C0 0%, #00B8A3 100%)',
+          border: 'none',
+          borderRadius: '12px',
+          color: 'white',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: '40px',
+          cursor: 'pointer',
+          boxShadow: '0 4px 12px rgba(0, 217, 192, 0.3)',
+          transition: 'transform 0.2s'
+        }}
+        onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+        onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+      >
+        <IoMdAdd size={28} />
+      </button>
+
       {/* Menu Items */}
-      <nav className="flex-grow-1 py-3">
+      <nav style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
         {menuItems.map((item) => (
           <Link
             key={item.path}
             to={item.path}
-            className={`d-flex align-items-center px-3 py-2 text-decoration-none ${
-              isActive(item.path) 
-                ? 'bg-primary text-white' 
-                : 'text-white-50'
-            }`}
             style={{
-              transition: 'all 0.2s',
-              borderLeft: isActive(item.path) ? '3px solid #4CAF50' : '3px solid transparent'
+              width: '50px',
+              height: '50px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: isActive(item.path) ? 'var(--cor-primaria)' : 'var(--cor-texto-secundario)',
+              textDecoration: 'none',
+              borderRadius: '12px',
+              backgroundColor: isActive(item.path) ? 'white' : 'transparent',
+              transition: 'all 0.2s'
+            }}
+            onMouseOver={(e) => {
+              if (!isActive(item.path)) {
+                e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.5)'
+              }
+            }}
+            onMouseOut={(e) => {
+              if (!isActive(item.path)) {
+                e.currentTarget.style.backgroundColor = 'transparent'
+              }
             }}
           >
-            <span className="me-3" style={{ fontSize: '1.2rem' }}>{item.icon}</span>
-            <span>{item.label}</span>
+            {item.icon}
           </Link>
         ))}
       </nav>
-
-      {/* Footer da Sidebar */}
-      <div className="p-3 border-top border-secondary">
-        <div className="d-flex align-items-center">
-          <div className="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2"
-               style={{ width: '40px', height: '40px' }}>
-            <span>👤</span>
-          </div>
-          <div>
-            <div className="small fw-bold">Fornecedor</div>
-            <div className="small text-muted">Dental Supply</div>
-          </div>
-        </div>
-      </div>
     </div>
   )
 }

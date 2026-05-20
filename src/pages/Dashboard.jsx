@@ -1,139 +1,115 @@
 import { useState, useEffect } from 'react'
 import { collection, getDocs } from 'firebase/firestore'
 import { db } from '../config/firebase'
-import TabelaProdutos from '../components/TabelaProdutos'
-import Layout from '../components/Layout/Layout'
+import { MdLocalGroceryStore } from 'react-icons/md'
+import { IoMdAlert } from 'react-icons/io'
+import { AiFillAlert } from 'react-icons/ai'
+import Layout from '../components/layout/Layout'
+import StatCard from '../components/StatCard'
+import TabelaEstoque from '../components/TabelaEstoque'
+import AlertasCriticos from '../components/AlertasCriticos'
 
-export function Dashboard() {
-    const [produtos, setProdutos] = useState([])
-    const [loading, setLoading] = useState(true)
+function Dashboard() {
+  const [produtos, setProdutos] = useState([])
+  const [loading, setLoading] = useState(true)
 
-    const FORNECEDOR_ID = 'FxJRkTuDGTn9bfZm3Nwi'
+  const FORNECEDOR_ID = 'FxJRkTuDGTn9bfZm3Nwi'
 
-    useEffect(() => {
-        async function carregarProdutos() {
-            try {
-                const produtosRef = collection(db, `fornecedores/${FORNECEDOR_ID}/produtos`)
-                const snapshot = await getDocs(produtosRef)
-    
-                const dados = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }))
-    
-                dados.sort((a, b) => {
-                    const nivelA = (a.qtdAtual / a.qtdMaxima) * 100
-                    const nivelB = (b.qtdAtual / b.qtdMaxima) * 100
-                    return nivelA - nivelB
-                })
-    
-                setProdutos(dados)
-            } catch(erro) {
-                console.error('Erro ao carregar produtos: ', erro)
-                alert('Erro ao carregar produtos. Verifique o console.')
-            } finally {
-                setLoading(false)
-            }
-        }
+  useEffect(() => {
+    async function carregarProdutos() {
+      try {
+        const produtosRef = collection(db, `fornecedores/${FORNECEDOR_ID}/produtos`)
+        const snapshot = await getDocs(produtosRef)
+        
+        const dados = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }))
 
-        carregarProdutos()
-    }, [])
+        dados.sort((a, b) => {
+          const nivelA = (a.quantidadeAtual / a.quantidadeMaxima) * 100
+          const nivelB = (b.quantidadeAtual / b.quantidadeMaxima) * 100
+          return nivelA - nivelB
+        })
 
-    if (loading){
-        return(
-            <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
-                <div className="spinner-border text-primary" role='status'>
-                    <span className="visually-hidden">Carregando...</span>
-                </div>
-            </div>
-        )
+        setProdutos(dados)
+      } catch (erro) {
+        console.error('Erro:', erro)
+      } finally {
+        setLoading(false)
+      }
     }
 
-    const totalProdutos = produtos.length
-    const produtosCriticos = produtos.filter(p => (p.qtdAtual / p.qtdMaxima) < 0.2).length
-    const produtosAtencao = produtos.filter(p => {
-        const nivel = p.qtdAtual/p.qtdMaxima
-        return nivel >= 0.2 && nivel < 0.5
-    }).length
+    carregarProdutos()
+  }, [])
 
-    const headerActions = (
-      <>
-        <button className="btn btn-outline-primary btn-sm">Exportar</button>
-        <button className='btn btn-primary btn-sm'>Novo Produto</button>
-      </>
+  if (loading) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '100vh' 
+      }}>
+        <div className="spinner-border" style={{ color: 'var(--cor-primaria)' }} />
+      </div>
     )
+  }
 
-   return (
-    <Layout 
-      showHeader={true}
-      headerTitle="Dashboard"
-      headerSubtitle="Visão Geral"
-      headerActions={headerActions}
-    >
+  const totalProdutos = produtos.length
+  const produtosCriticos = produtos.filter(p => (p.quantidadeAtual / p.quantidadeMaxima) < 0.2).length
+  const produtosAtencao = produtos.filter(p => {
+    const nivel = p.quantidadeAtual / p.quantidadeMaxima
+    return nivel >= 0.2 && nivel < 0.5
+  }).length
 
-    <div className="container-fluid py-4">
-      {/* Header */}
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h2 className="mb-1">Dashboard - Fornecedor</h2>
-          <p className="text-muted mb-0">Visão geral do estoque de produtos</p>
+  return (
+    <Layout headerTitle="Dashboard">
+      {/* Visão Geral */}
+      <div style={{ marginBottom: '32px' }}>
+        <h5 style={{ 
+          marginBottom: '20px', 
+          color: 'var(--cor-texto-secundario)', 
+          fontWeight: '400',
+          fontSize: '18px'
+        }}>
+          Visão Geral
+        </h5>
+        
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(3, 1fr)', 
+          gap: '20px' 
+        }}>
+          <StatCard 
+            title="Total de produtos"
+            value={totalProdutos}
+            icon={<MdLocalGroceryStore />}
+            bgColor="var(--cor-card-verde)"
+            iconColor="#00D9C0"
+          />
+          <StatCard 
+            title="Atenção"
+            value={produtosAtencao}
+            icon={<IoMdAlert />}
+            bgColor="var(--cor-card-amarelo)"
+            iconColor= "var(--cor-badge-atencao)"
+          />
+          <StatCard 
+            title="Críticos"
+            value={produtosCriticos}
+            icon={<AiFillAlert />}
+            bgColor="var(--cor-card-rosa)"
+            iconColor="#FF6B6B"
+          />
         </div>
       </div>
 
-      {/* Cards de resumo */}
-      <div className="row mb-4">
-        <div className="col-md-4">
-          <div className="card border-primary">
-            <div className="card-body">
-              <div className="d-flex justify-content-between align-items-center">
-                <div>
-                  <h6 className="text-muted mb-1">Total de Produtos</h6>
-                  <h3 className="mb-0">{totalProdutos}</h3>
-                </div>
-                <div className="text-primary" style={{ fontSize: '2rem' }}>
-                  📦
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="col-md-4">
-          <div className="card border-warning">
-            <div className="card-body">
-              <div className="d-flex justify-content-between align-items-center">
-                <div>
-                  <h6 className="text-muted mb-1">Em Atenção</h6>
-                  <h3 className="mb-0">{produtosAtencao}</h3>
-                </div>
-                <div className="text-warning" style={{ fontSize: '2rem' }}>
-                  ⚠️
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="col-md-4">
-          <div className="card border-danger">
-            <div className="card-body">
-              <div className="d-flex justify-content-between align-items-center">
-                <div>
-                  <h6 className="text-muted mb-1">Críticos</h6>
-                  <h3 className="mb-0">{produtosCriticos}</h3>
-                </div>
-                <div className="text-danger" style={{ fontSize: '2rem' }}>
-                  🚨
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Tabela e Alertas */}
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px' }}>
+        <TabelaEstoque produtos={produtos} />
+        <AlertasCriticos />
       </div>
-
-      {/* Tabela de produtos */}
-      <TabelaProdutos produtos={produtos} />
-    </div>
     </Layout>
   )
 }

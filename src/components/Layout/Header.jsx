@@ -5,7 +5,6 @@ function Header({ title }) {
     <div 
       style={{
         height: '80px',
-        backgroundColor: 'white',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',

@@ -53,14 +53,14 @@ function TabelaEstoque({ produtos }) {
         </thead>
         <tbody>
           {produtos.map((produto) => {
-            const nivel = calcularNivel(produto.quantidadeAtual, produto.quantidadeMaxima)
+            const nivel = calcularNivel(produto.qtdAtual, produto.qtdMaxima)
             return (
               <tr key={produto.id} style={{ borderBottom: '1px solid #F8F8F8' }}>
                 <td style={{ padding: '16px 0', color: 'var(--cor-texto)', fontSize: '14px' }}>
                   {produto.nome}
                 </td>
                 <td style={{ padding: '16px 0', color: 'var(--cor-texto-secundario)', fontSize: '14px' }}>
-                  {produto.quantidadeAtual}/{produto.quantidadeMaxima} {produto.unidade}
+                  {produto.qtdAtual}/{produto.qtdMaxima} {produto.unidade}
                 </td>
                 <td style={{ padding: '16px 0' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -74,7 +74,7 @@ function TabelaEstoque({ produtos }) {
                       <div style={{
                         width: `${nivel}%`,
                         height: '100%',
-                        background: nivel >= 50 ? '#00D9C0' : nivel >= 20 ? '#2D3748' : '#2D3748',
+                        background: 'var(--cor-primaria)',
                         borderRadius: '4px'
                       }} />
                     </div>

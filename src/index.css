@@ -1,12 +1,12 @@
 :root {
   --cor-primaria: #00D9C0;
-  --cor-sidebar-bg: #F5F5F5;
+  --cor-sidebar-bg: #F3F3F3;
   --cor-fundo: #FFFFFF;
   --cor-card-verde: #D4F4ED;
-  --cor-card-amarelo: #F5E6C8;
-  --cor-card-rosa: #F5D4D4;
+  --cor-card-amarelo: #F7F3DA;
+  --cor-card-rosa: #F7DADA;
   --cor-texto: #2D3748;
-  --cor-texto-secundario: #A0AEC0;
+  --cor-texto-secundario: #00000060;
   --cor-badge-critico: #FF6B6B;
   --cor-badge-atencao: #FFD93D;
   --sidebar-width: 80px;
@@ -20,7 +20,7 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  background-color: var(--cor-fundo);
+  background-color: var(--cor-sidebar-bg);
   color: var(--cor-texto);
 }
 

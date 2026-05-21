@@ -24,7 +24,7 @@ function Sidebar() {
         position: 'fixed',
         left: 0,
         top: 0,
-        backgroundColor: 'var(--cor-sidebar-bg)',
+        backgroundColor: 'white',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',

@@ -1,17 +1,19 @@
 import { Link, useLocation } from 'react-router-dom'
 import { AiOutlineHome, AiOutlineBarChart } from 'react-icons/ai'
-import { IoMdSync } from 'react-icons/io'
 import { MdContentCopy } from 'react-icons/md'
 import { IoMdAdd } from 'react-icons/io'
+import { VscArchive } from "react-icons/vsc";
+import { HiOutlineCalendar } from "react-icons/hi";
+import { HiOutlineDocumentSearch } from "react-icons/hi";
 
 function Sidebar() {
   const location = useLocation()
 
   const menuItems = [
     { path: '/', icon: <AiOutlineHome size={24} />, label: 'Dashboard' },
-    { path: '/analytics', icon: <AiOutlineBarChart size={24} />, label: 'Analytics' },
-    { path: '/sync', icon: <IoMdSync size={24} />, label: 'Sync' },
-    { path: '/docs', icon: <MdContentCopy size={24} />, label: 'Docs' },
+    { path: '/estoque', icon: <VscArchive size={24}/>, label: 'Controle de Estoque' },
+    { path: '/agenda', icon: <HiOutlineCalendar size={24} />, label: 'Agenda' },
+    { path: '/docs', icon: <HiOutlineDocumentSearch size={24} />, label: 'Docs' },
   ]
 
   const isActive = (path) => location.pathname === path

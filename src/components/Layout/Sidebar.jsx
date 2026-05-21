@@ -56,7 +56,7 @@ function Sidebar() {
         style={{
           width: '50px',
           height: '50px',
-          background: 'linear-gradient(135deg, #00D9C0 0%, #00B8A3 100%)',
+          background: 'var(--cor-primaria)',
           border: 'none',
           borderRadius: '12px',
           color: 'white',
@@ -65,7 +65,6 @@ function Sidebar() {
           justifyContent: 'center',
           marginBottom: '40px',
           cursor: 'pointer',
-          boxShadow: '0 4px 12px rgba(0, 217, 192, 0.3)',
           transition: 'transform 0.2s'
         }}
         onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}

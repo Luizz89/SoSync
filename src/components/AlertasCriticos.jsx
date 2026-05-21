@@ -87,10 +87,7 @@ function AlertasCriticos({ produtos }) {
                 padding: '16px',
                 backgroundColor: '#FAFAFA',
                 borderRadius: '12px',
-                transition: 'all 0.2s'
               }}
-              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#F0F0F0'}
-              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#FAFAFA'}
             >
               <div style={{ flex: 1 }}>
                 <span style={{ 

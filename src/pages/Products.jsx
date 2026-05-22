@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { collection, onSnapshot } from 'firebase/firestore'
+import { collection, onSnapshot, doc, deleteDoc } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import Layout from '../components/layout/Layout'
 import TabelaProdutos from '../components/TabelaProdutos'
@@ -12,6 +12,18 @@ function Products() {
 
   const FORNECEDOR_ID = 'FxJRkTuDGTn9bfZm3Nwi'
 
+  async function deletarProduto(id) {
+    if (!window.confirm('Tem certeza que deseja deletar este produto?')) return
+
+    try {
+      await deleteDoc(doc(db, `fornecedores/${FORNECEDOR_ID}/produtos`, id))
+      setProdutos(produtos.filter(p => p.id !== id))
+    } catch (erro) {
+      console.error('Erro ao deletar produto:', erro)
+      alert('Erro ao deletar produto.')
+    }
+  }
+
   useEffect(() => {
     const produtosRef = collection(db, `fornecedores/${FORNECEDOR_ID}/produtos`)
     
@@ -21,7 +33,6 @@ function Products() {
         ...doc.data()
       }))
 
-      // Ordena alfabeticamente por nome
       dados.sort((a, b) => a.nome.localeCompare(b.nome))
 
       setProdutos(dados)
@@ -36,12 +47,7 @@ function Products() {
 
   if (loading) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        minHeight: '100vh' 
-      }}>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
         <div className="spinner-border" style={{ color: 'var(--cor-primaria)' }} />
       </div>
     )
@@ -49,57 +55,26 @@ function Products() {
 
   return (
     <Layout headerTitle="Controle de Estoque">
-      <div style={{ 
-        backgroundColor: 'white',
-        borderRadius: '20px',
-        padding: '32px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
-      }}>
-        {/* Header da página */}
+      <div style={{ backgroundColor: 'white', borderRadius: '20px', padding: '32px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
         <div className="d-flex justify-content-between align-items-center" style={{ marginBottom: '32px' }}>
-          <h5 style={{ 
-            margin: 0,
-            color: 'var(--cor-texto)', 
-            fontWeight: '400',
-            fontSize: '20px'
-          }}>
+          <h5 style={{ margin: 0, color: 'var(--cor-texto)', fontWeight: '400', fontSize: '20px' }}>
             Produtos
           </h5>
           <button 
             onClick={() => setModalAberto(true)}  
             className='btn'
-            style={{
-              background: 'var(--cor-primaria)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '12px',
-              padding: '12px 24px',
-              fontSize: '14px',
-              fontWeight: '500',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              transition: 'all .2s ease 0s'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)'
-              e.currentTarget.style.boxShadow = '0 6px 16px rgba(179, 179, 179, 0.4)'
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)'
-              e.currentTarget.style.boxShadow = 'None'
-            }}
+            style={{ background: 'var(--cor-primaria)', color: 'white', border: 'none', borderRadius: '12px', padding: '12px 24px', fontSize: '14px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all .2s ease 0s' }}
+            onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(179, 179, 179, 0.4)' }}
+            onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'None' }}
           >
             <span style={{ fontSize: '18px', fontWeight: 'bold' }}>+</span>
             Novo Produto
           </button>        
         </div>
 
-        {/* Tabela */}
-        <TabelaProdutos produtos={produtos} />
+        <TabelaProdutos produtos={produtos} onDeletar={deletarProduto} />
       </div>
 
-      {/* Modal de Novo Produto */}
       <ModalNovoProduto 
         isOpen={modalAberto}
         onClose={() => setModalAberto(false)}

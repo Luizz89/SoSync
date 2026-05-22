@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { collection, onSnapshot } from 'firebase/firestore'
+import { collection, onSnapshot,} from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { MdLocalGroceryStore } from 'react-icons/md'
 import { IoMdAlert } from 'react-icons/io'
@@ -8,6 +8,7 @@ import Layout from '../components/layout/Layout'
 import StatCard from '../components/StatCard'
 import TabelaEstoque from '../components/TabelaEstoque'
 import AlertasCriticos from '../components/AlertasCriticos'
+
 
 function Dashboard() {
   const [produtos, setProdutos] = useState([])
@@ -119,5 +120,6 @@ function Dashboard() {
     </Layout>
   )
 }
+
 
 export default Dashboard

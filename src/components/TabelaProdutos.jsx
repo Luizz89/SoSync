@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { AiOutlineDelete } from "react-icons/ai"
 import { MdOutlineEdit } from "react-icons/md"
 
-function TabelaProdutos({ produtos }) {
+
+function TabelaProdutos({ produtos , onDeletar }) {
   const [paginaAtual, setPaginaAtual] = useState(1)
   const [itensPorPagina, setItensPorPagina] = useState(10)
+
 
   function calcularNivel(atual, maximo) {
     return Math.round((atual / maximo) * 100)
@@ -216,7 +218,7 @@ function TabelaProdutos({ produtos }) {
                     textAlign: 'right',
                     border: 'none'
                   }}>
-                    <button 
+                    <button
                       className="btn btn-sm"
                       style={{
                         width: '36px',
@@ -237,6 +239,7 @@ function TabelaProdutos({ produtos }) {
                       <MdOutlineEdit size={18} />
                     </button>
                     <button 
+                    onClick={() => onDeletar(produto.id)}
                       className="btn btn-sm"
                       style={{
                         width: '36px',

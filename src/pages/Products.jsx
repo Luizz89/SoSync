@@ -72,6 +72,7 @@ function Products() {
         padding: '32px',
         boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
       }}>
+        <div className="d-flex justify-content-between">
         <h5 style={{ 
           marginBottom: '20px', 
           color: 'var(--cor-texto-secundario)', 
@@ -79,9 +80,11 @@ function Products() {
           fontSize: '18px'
         }}>
           Visão Geral
-        </h5>        
+        </h5>
+        <button className='btn btn-primary' style={{marginBottom: '2rem'}}>Novo Produto</button>        
+        </div>
       {/* Tabela de estoque */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px' }}>
+      <div >
         <TabelaProdutos produtos={produtos} />
       </div>
       </div>

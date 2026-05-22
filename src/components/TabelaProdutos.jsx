@@ -1,3 +1,6 @@
+import { AiOutlineDelete } from "react-icons/ai";
+import { MdOutlineEdit } from "react-icons/md";
+
 function TabelaProdutos({ produtos }) {
   function calcularNivel(atual, maximo) {
     return Math.round((atual / maximo) * 100)
@@ -16,20 +19,22 @@ function TabelaProdutos({ produtos }) {
   }
 
   return (
-    <div className="card">
-      <div className="card-header">
-        <h5 className="mb-0">Estoque de Produtos</h5>
-      </div>
+    <div className="card" style={{
+      border: 'white'
+      
+    }}>
       <div className="card-body p-0">
-        <div className="table-responsive">
+        <div className="table-responsive" >
           <table className="table table-hover mb-0">
             <thead className="table-light">
               <tr>
                 <th>Produto</th>
                 <th>Quantidade</th>
                 <th className="text-center">Nível</th>
-                <th className="text-center">Status</th>
+                <th className="text-center">Data de Entrada</th>
+                <th className="text-center">Data de Validade</th>
                 <th className="text-end">Preço Unit.</th>
+                <th className="text-end">Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -50,13 +55,18 @@ function TabelaProdutos({ produtos }) {
                         <span className="ms-2 small text-muted">{nivel}%</span>
                       </div>
                     </td>
-                    <td className="text-center">
-                      <span className={`badge ${getBadgeClass(nivel)}`}>
-                        {getStatus(nivel)}
-                      </span>
+                    <td className="text-end">
+                      30/01/2005
+                    </td>
+                    <td className="text-end">
+                      30/01/2025
                     </td>
                     <td className="text-end">
                       R$ {produto.preco.toFixed(2)}
+                    </td>
+                    <td className="text-end" style={{gap: '10px'}}>
+                      <button className="btn btn-outline-secondary" style={{alignItems: 'center', justifyContent: 'center', marginRight: '10px'}}><MdOutlineEdit size={22}/></button>
+                      <button className="btn btn-outline-secondary" style={{alignItems: 'center', justifyContent: 'center'}}><AiOutlineDelete size={22}/></button>
                     </td>
                   </tr>
                 )

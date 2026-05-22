@@ -1,21 +1,18 @@
 import { useState, useEffect } from 'react'
 import { collection, onSnapshot } from 'firebase/firestore'
 import { db } from '../config/firebase'
-import { MdLocalGroceryStore } from 'react-icons/md'
-import { IoMdAlert } from 'react-icons/io'
-import { AiFillAlert } from 'react-icons/ai'
 import Layout from '../components/layout/Layout'
-import StatCard from '../components/StatCard'
 import TabelaProdutos from '../components/TabelaProdutos'
+import ModalNovoProduto from '../components/ModalNovoProduto'
 
 function Products() {
   const [produtos, setProdutos] = useState([])
   const [loading, setLoading] = useState(true)
+  const [modalAberto, setModalAberto] = useState(false)
 
   const FORNECEDOR_ID = 'FxJRkTuDGTn9bfZm3Nwi'
 
   useEffect(() => {
-    // onSnapshot escuta mudanças em tempo real
     const produtosRef = collection(db, `fornecedores/${FORNECEDOR_ID}/produtos`)
     
     const unsubscribe = onSnapshot(produtosRef, (snapshot) => {
@@ -24,12 +21,8 @@ function Products() {
         ...doc.data()
       }))
 
-      // Ordena por nível crítico (menor primeiro)
-      dados.sort((a, b) => {
-        const nivelA = (a.qtdAtual / a.qtdMaxima) * 100
-        const nivelB = (b.qtdAtual / b.qtdMaxima) * 100
-        return nivelA - nivelB
-      })
+      // Ordena alfabeticamente por nome
+      dados.sort((a, b) => a.nome.localeCompare(b.nome))
 
       setProdutos(dados)
       setLoading(false)
@@ -38,7 +31,6 @@ function Products() {
       setLoading(false)
     })
 
-    // Cleanup: cancela a escuta quando o componente desmontar
     return () => unsubscribe()
   }, [])
 
@@ -55,40 +47,64 @@ function Products() {
     )
   }
 
-  const totalProdutos = produtos.length
-  const produtosCriticos = produtos.filter(p => (p.qtdAtual / p.qtdMaxima) < 0.2).length
-  const produtosAtencao = produtos.filter(p => {
-    const nivel = p.qtdAtual / p.qtdMaxima
-    return nivel >= 0.2 && nivel < 0.5
-  }).length
-
   return (
-    <Layout headerTitle="Estoque">
-      {/* Visão Geral */}
+    <Layout headerTitle="Controle de Estoque">
       <div style={{ 
-        marginBottom: '32px',
-        backgroundColor: 'White',
+        backgroundColor: 'white',
         borderRadius: '20px',
         padding: '32px',
         boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
       }}>
-        <div className="d-flex justify-content-between">
-        <h5 style={{ 
-          marginBottom: '20px', 
-          color: 'var(--cor-texto-secundario)', 
-          fontWeight: '400',
-          fontSize: '18px'
-        }}>
-          Visão Geral
-        </h5>
-        <button className='btn btn-primary' style={{marginBottom: '2rem'}}>Novo Produto</button>        
+        {/* Header da página */}
+        <div className="d-flex justify-content-between align-items-center" style={{ marginBottom: '32px' }}>
+          <h5 style={{ 
+            margin: 0,
+            color: 'var(--cor-texto)', 
+            fontWeight: '400',
+            fontSize: '20px'
+          }}>
+            Produtos
+          </h5>
+          <button 
+            onClick={() => setModalAberto(true)}  
+            className='btn'
+            style={{
+              background: 'linear-gradient(135deg, var(--cor-primaria) 0%, #00B8A3 100%)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '12px',
+              padding: '12px 24px',
+              fontSize: '14px',
+              fontWeight: '500',
+              boxShadow: '0 4px 12px rgba(0, 217, 192, 0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)'
+              e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 217, 192, 0.4)'
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)'
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 217, 192, 0.3)'
+            }}
+          >
+            <span style={{ fontSize: '18px', fontWeight: 'bold' }}>+</span>
+            Novo Produto
+          </button>        
         </div>
-      {/* Tabela de estoque */}
-      <div >
+
+        {/* Tabela */}
         <TabelaProdutos produtos={produtos} />
       </div>
-      </div>
 
+      {/* Modal de Novo Produto */}
+      <ModalNovoProduto 
+        isOpen={modalAberto}
+        onClose={() => setModalAberto(false)}
+        fornecedorId={FORNECEDOR_ID}
+      />
     </Layout>
   )
 }

@@ -5,6 +5,7 @@ import { IoMdAdd } from 'react-icons/io'
 import { VscArchive } from "react-icons/vsc";
 import { HiOutlineCalendar } from "react-icons/hi";
 import { HiOutlineDocumentSearch } from "react-icons/hi";
+import { MdOutlineSupervisedUserCircle } from "react-icons/md";
 
 function Sidebar() {
   const location = useLocation()
@@ -14,6 +15,7 @@ function Sidebar() {
     { path: '/estoque', icon: <VscArchive size={24}/>, label: 'Controle de Estoque' },
     { path: '/agenda', icon: <HiOutlineCalendar size={24} />, label: 'Agenda' },
     { path: '/docs', icon: <HiOutlineDocumentSearch size={24} />, label: 'Docs' },
+    { path: '/clinica', icon: <MdOutlineSupervisedUserCircle size={24} />, label: 'Perfil Clinica' },
   ]
 
   const isActive = (path) => location.pathname === path

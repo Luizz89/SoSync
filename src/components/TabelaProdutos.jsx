@@ -250,7 +250,7 @@ function TabelaProdutos({ produtos }) {
                         backgroundColor: 'white',
                         color: 'var(--cor-texto-secundario)'
                       }}
-                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#FFE5E5'}
+                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#ffbbbb'}
                       onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'white'}
                     >
                       <AiOutlineDelete size={18} />

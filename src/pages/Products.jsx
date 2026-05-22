@@ -69,25 +69,25 @@ function Products() {
             onClick={() => setModalAberto(true)}  
             className='btn'
             style={{
-              background: 'linear-gradient(135deg, var(--cor-primaria) 0%, #00B8A3 100%)',
+              background: 'var(--cor-primaria)',
               color: 'white',
               border: 'none',
               borderRadius: '12px',
               padding: '12px 24px',
               fontSize: '14px',
               fontWeight: '500',
-              boxShadow: '0 4px 12px rgba(0, 217, 192, 0.3)',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px'
+              gap: '8px',
+              transition: 'all .2s ease 0s'
             }}
             onMouseOver={(e) => {
               e.currentTarget.style.transform = 'translateY(-2px)'
-              e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 217, 192, 0.4)'
+              e.currentTarget.style.boxShadow = '0 6px 16px rgba(179, 179, 179, 0.4)'
             }}
             onMouseOut={(e) => {
               e.currentTarget.style.transform = 'translateY(0)'
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 217, 192, 0.3)'
+              e.currentTarget.style.boxShadow = 'None'
             }}
           >
             <span style={{ fontSize: '18px', fontWeight: 'bold' }}>+</span>

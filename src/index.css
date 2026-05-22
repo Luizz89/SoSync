@@ -9,6 +9,7 @@
   --cor-texto-secundario: #00000060;
   --cor-badge-critico: #FF6B6B;
   --cor-badge-atencao: #FFD93D;
+  --default-transition: all .2s ease 0s;
   --sidebar-width: 80px;
 }
 

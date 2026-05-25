@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
-import { collection, onSnapshot, doc, deleteDoc } from 'firebase/firestore'
-import { db } from '../config/firebase'
+import { supabase } from '../config/supabase'
 import Layout from '../components/layout/Layout'
 import TabelaProdutos from '../components/TabelaProdutos'
 import ModalNovoProduto from '../components/ModalNovoProduto'
@@ -10,39 +9,45 @@ function Products() {
   const [loading, setLoading] = useState(true)
   const [modalAberto, setModalAberto] = useState(false)
 
-  const FORNECEDOR_ID = 'FxJRkTuDGTn9bfZm3Nwi'
+  async function carregarProdutos() {
+    const { data, error } = await supabase
+      .from('produtos')
+      .select('*')
+      .order('nome', { ascending: true })
+
+    if (error) {
+      console.error('Erro ao carregar produtos:', error)
+    } else {
+      setProdutos(data)
+    }
+    setLoading(false)
+  }
 
   async function deletarProduto(id) {
-    if (!window.confirm('Tem certeza que deseja deletar este produto?')) return
+    const { error } = await supabase
+      .from('produtos')
+      .delete()
+      .eq('id', id)
 
-    try {
-      await deleteDoc(doc(db, `fornecedores/${FORNECEDOR_ID}/produtos`, id))
-      setProdutos(produtos.filter(p => p.id !== id))
-    } catch (erro) {
-      console.error('Erro ao deletar produto:', erro)
+    if (error) {
+      console.error('Erro ao deletar produto:', error)
       alert('Erro ao deletar produto.')
+    } else {
+      setProdutos(produtos.filter(p => p.id !== id))
     }
   }
 
   useEffect(() => {
-    const produtosRef = collection(db, `fornecedores/${FORNECEDOR_ID}/produtos`)
-    
-    const unsubscribe = onSnapshot(produtosRef, (snapshot) => {
-      const dados = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }))
+    carregarProdutos()
 
-      dados.sort((a, b) => a.nome.localeCompare(b.nome))
+    const subscription = supabase
+      .channel('produtos')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'produtos' }, () => {
+        carregarProdutos()
+      })
+      .subscribe()
 
-      setProdutos(dados)
-      setLoading(false)
-    }, (error) => {
-      console.error('Erro ao carregar produtos:', error)
-      setLoading(false)
-    })
-
-    return () => unsubscribe()
+    return () => supabase.removeChannel(subscription)
   }, [])
 
   if (loading) {
@@ -57,28 +62,26 @@ function Products() {
     <Layout headerTitle="Controle de Estoque">
       <div style={{ backgroundColor: 'white', borderRadius: '20px', padding: '32px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
         <div className="d-flex justify-content-between align-items-center" style={{ marginBottom: '32px' }}>
-          <h5 style={{ margin: 0, color: 'var(--cor-texto)', fontWeight: '400', fontSize: '20px' }}>
-            Produtos
-          </h5>
-          <button 
-            onClick={() => setModalAberto(true)}  
+          <h5 style={{ margin: 0, color: 'var(--cor-texto)', fontWeight: '400', fontSize: '20px' }}>Produtos</h5>
+          <button
+            onClick={() => setModalAberto(true)}
             className='btn'
-            style={{ background: 'var(--cor-primaria)', color: 'white', border: 'none', borderRadius: '12px', padding: '12px 24px', fontSize: '14px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all .2s ease 0s' }}
-            onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(179, 179, 179, 0.4)' }}
-            onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'None' }}
+            style={{ background: 'var(--cor-primaria)', color: 'white', border: 'none', borderRadius: '12px', padding: '12px 24px', fontSize: '14px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '8px' }}
+            onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(179,179,179,0.4)' }}
+            onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}
           >
             <span style={{ fontSize: '18px', fontWeight: 'bold' }}>+</span>
             Novo Produto
-          </button>        
+          </button>
         </div>
 
-        <TabelaProdutos produtos={produtos} onDeletar={deletarProduto} />
+        <TabelaProdutos produtos={produtos} onDeletar={deletarProduto} produtosExistentes={produtos} />
       </div>
 
-      <ModalNovoProduto 
+      <ModalNovoProduto
         isOpen={modalAberto}
-        onClose={() => setModalAberto(false)}
-        fornecedorId={FORNECEDOR_ID}
+        onClose={() => { setModalAberto(false); carregarProdutos() }}
+        produtosExistentes={produtos}
       />
     </Layout>
   )

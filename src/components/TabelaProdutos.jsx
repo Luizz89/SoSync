@@ -1,22 +1,35 @@
 import { useState } from 'react'
 import { AiOutlineDelete } from "react-icons/ai"
 import { MdOutlineEdit } from "react-icons/md"
-
+import ModalEditarProduto from './ModalEditarProduto'
+import ModalConfirmarExclusao from './ModalConfirmarExclusao'
 
 function TabelaProdutos({ produtos , onDeletar }) {
   const [paginaAtual, setPaginaAtual] = useState(1)
   const [itensPorPagina, setItensPorPagina] = useState(10)
+  const [modalEditarAberto, setModalEditarAberto] = useState(false)
+  const [produtoSelecionado, setProdutoSelecionado] = useState(null)
+  const [modalExcluirAberto, setModalExcluirAberto] = useState(false)
+  const [produtoParaExcluir, setProdutoParaExcluir] = useState(null)
+  const [busca, setBusca] = useState('')
 
 
   function calcularNivel(atual, maximo) {
     return Math.round((atual / maximo) * 100)
   }
 
+
+  const produtosFiltrados = produtos.filter(p =>
+  p.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  .includes(busca.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''))
+)
+
+
   // Cálculo de paginação
   const indexUltimo = paginaAtual * itensPorPagina
   const indexPrimeiro = indexUltimo - itensPorPagina
-  const produtosPaginados = produtos.slice(indexPrimeiro, indexUltimo)
-  const totalPaginas = Math.ceil(produtos.length / itensPorPagina)
+  const produtosPaginados = produtosFiltrados.slice(indexPrimeiro, indexUltimo)
+  const totalPaginas = Math.ceil(produtosFiltrados.length / itensPorPagina)
 
   function mudarPagina(numeroPagina) {
     setPaginaAtual(numeroPagina)
@@ -58,10 +71,48 @@ function TabelaProdutos({ produtos , onDeletar }) {
   }
 
   return (
+    
     <div>
+      {/* Barra de busca */}
+<div style={{ marginBottom: '20px', position: 'relative' }}>
+  <span style={{
+    position: 'absolute', left: '14px', top: '50%',
+    transform: 'translateY(-50%)',
+    color: 'var(--cor-texto-secundario)', fontSize: '16px'
+  }}>
+
+  </span>
+  <input
+    type="text"
+    placeholder="Pesquisar produto..."
+    value={busca}
+    onChange={(e) => { setBusca(e.target.value); setPaginaAtual(1) }}
+    style={{
+      width: '100%', padding: '12px 12px 12px 12px',
+      borderRadius: '12px', border: '1px solid #E8E8E8',
+      fontSize: '14px', outline: 'none',
+      color: 'var(--cor-texto)'
+    }}
+    onFocus={(e) => e.target.style.border = '1px solid var(--cor-primaria)'}
+    onBlur={(e) => e.target.style.border = '1px solid #E8E8E8'}
+  />
+  {busca && (
+    <button
+      onClick={() => { setBusca(''); setPaginaAtual(1) }}
+      style={{
+        position: 'absolute', right: '14px', top: '50%',
+        transform: 'translateY(-50%)', background: 'none',
+        border: 'none', cursor: 'pointer', fontSize: '16px',
+        color: 'var(--cor-texto-secundario)'
+      }}
+    >
+      ✕
+    </button>
+  )}
+</div>
       {/* Tabela */}
       <div className="table-responsive">
-        <table className="table table-hover mb-0 table-striped" style={{ borderCollapse: 'separate', borderSpacing: 0 }}>
+        <table className="table table-striped" style={{ borderCollapse: 'separate', borderSpacing: 0 }}>
           <thead>
             <tr style={{ borderBottom: '1px solid #F0F0F0' }}>
               <th style={{
@@ -201,9 +252,39 @@ function TabelaProdutos({ produtos , onDeletar }) {
                     padding: '20px 16px', 
                     color: 'var(--cor-texto-secundario)', 
                     fontSize: '14px',
-                    border: 'none'
+                    border: 'none',
                   }}>
-                    {produto.validade || '30/01/2026'}
+                    {produto.validade || '—'}
+                    {produto.validade && (() => {
+                      const [dia, mes, ano] = produto.validade.split('/')
+                      const dataValidade = new Date(`${ano}-${mes}-${dia}`)
+                      const hoje = new Date()
+                      hoje.setHours(0, 0, 0, 0)
+                      const vencido = dataValidade < hoje
+                      const diasRestantes = Math.ceil((dataValidade - hoje) / (1000 * 60 * 60 * 24))
+
+                      return (
+                        <div style={{
+                          marginTop: '4px',
+                          fontSize: '11px',
+                          fontWeight: '500',
+                          color: vencido ? '#FF6B6B' : diasRestantes <= 30 ? '#FFD93D' : '#00D9C0',
+                          backgroundColor: vencido ? '#FFE5E5' : diasRestantes <= 30 ? '#FFF8E1' : '#E5FBF8',
+                          borderRadius: '6px',
+                          padding: '2px 8px',
+                          display: 'grid',
+                          width: 'fit-content'
+                        }}>
+                          {vencido 
+                            ? `Vencido há ${Math.abs(diasRestantes)} dia(s)` 
+                            : diasRestantes === 0 
+                              ? 'Vence hoje!' 
+                              : diasRestantes <= 30 
+                                ? `Vence em ${diasRestantes} dia(s)`
+                                : 'Dentro da validade'}
+                        </div>
+                      )
+                    })()}
                   </td>
                   <td style={{ 
                     padding: '20px 16px', 
@@ -218,8 +299,11 @@ function TabelaProdutos({ produtos , onDeletar }) {
                     textAlign: 'right',
                     border: 'none'
                   }}>
+
+                    {/*botao editar*/}
                     <button
                       className="btn btn-sm"
+                      onClick={() => { setProdutoSelecionado(produto); setModalEditarAberto(true) }}
                       style={{
                         width: '36px',
                         height: '36px',
@@ -238,8 +322,10 @@ function TabelaProdutos({ produtos , onDeletar }) {
                     >
                       <MdOutlineEdit size={18} />
                     </button>
+
+                    {/*botao deletar*/}
                     <button 
-                    onClick={() => onDeletar(produto.id)}
+                    onClick={() => { setProdutoParaExcluir(produto); setModalExcluirAberto(true) }}
                       className="btn btn-sm"
                       style={{
                         width: '36px',
@@ -354,9 +440,25 @@ function TabelaProdutos({ produtos , onDeletar }) {
 
         {/* Contador de registros */}
         <div style={{ fontSize: '14px', color: 'var(--cor-texto-secundario)' }}>
-          Exibindo {indexPrimeiro + 1}-{Math.min(indexUltimo, produtos.length)} de {produtos.length} Registros
+          Exibindo {indexPrimeiro + 1}-{Math.min(indexUltimo, produtosFiltrados.length)} de {produtosFiltrados.length} Registros
         </div>
       </div>
+      <ModalEditarProduto
+        isOpen={modalEditarAberto}
+        onClose={() => setModalEditarAberto(false)}
+        produto={produtoSelecionado}
+        fornecedorId="FxJRkTuDGTn9bfZm3Nwi"
+      />
+      <ModalConfirmarExclusao
+        isOpen={modalExcluirAberto}
+        nomeProduto={produtoParaExcluir?.nome}
+        onCancelar={() => { setModalExcluirAberto(false); setProdutoParaExcluir(null) }}
+        onConfirmar={() => {
+          onDeletar(produtoParaExcluir.id)
+          setModalExcluirAberto(false)
+          setProdutoParaExcluir(null)
+        }}
+      />
     </div>
   )
 }

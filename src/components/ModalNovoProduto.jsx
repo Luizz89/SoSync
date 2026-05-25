@@ -3,7 +3,7 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { IoMdClose } from 'react-icons/io'
 
-function ModalNovoProduto({ isOpen, onClose, fornecedorId }) {
+function ModalNovoProduto({ isOpen, onClose, fornecedorId, produtosExistentes = [] }) {
   const [formData, setFormData] = useState({
     nome: '',
     preco: '',
@@ -14,6 +14,14 @@ function ModalNovoProduto({ isOpen, onClose, fornecedorId }) {
   })
   const [salvando, setSalvando] = useState(false)
   const [erro, setErro] = useState('')
+
+  function normalizarTexto(texto) {
+  return texto
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+}
 
   function handleChange(e) {
     const { name, value } = e.target
@@ -30,6 +38,12 @@ function ModalNovoProduto({ isOpen, onClose, fornecedorId }) {
     // Validações
     if (!formData.nome.trim()) {
       setErro('Nome do produto é obrigatório')
+      return 
+    }
+    const nomeDigitado = normalizarTexto(formData.nome)
+    const jaExiste = produtosExistentes.some(p => normalizarTexto(p.nome) === nomeDigitado)
+    if (jaExiste) {
+      setErro(`O produto "${formData.nome.trim()}" já existe no estoque!`)
       return
     }
     if (!formData.preco || parseFloat(formData.preco) <= 0) {

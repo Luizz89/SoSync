@@ -8,6 +8,7 @@ import Layout from '../components/layout/Layout'
 import StatCard from '../components/StatCard'
 import TabelaEstoque from '../components/TabelaEstoque'
 import AlertasCriticos from '../components/AlertasCriticos'
+import ClinicasCard from '../components/ClinicasCard'
 import { BiClinic } from "react-icons/bi";
 import { LuPackageCheck } from "react-icons/lu";
 
@@ -116,7 +117,7 @@ function Dashboard() {
 
       {/* Tabela e Alertas */}
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px' }}>
-        <TabelaEstoque produtos={produtos} />
+        <ClinicasCard/>
         <AlertasCriticos produtos={produtos} />
       </div>
     </Layout>

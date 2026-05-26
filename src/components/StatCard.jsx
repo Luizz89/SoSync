@@ -2,7 +2,7 @@ function StatCard({ title, value, icon, bgColor, iconColor }) {
   return (
     <div 
       style={{
-        backgroundColor: bgColor,
+        backgroundColor: 'var(--cor-fundo-cinza)',
         borderRadius: '20px',
         padding: '32px',
         height: '160px',
@@ -30,7 +30,17 @@ function StatCard({ title, value, icon, bgColor, iconColor }) {
             {value}
           </h1>
         </div>
-        <div style={{ color: iconColor, fontSize: '40px' }}>
+        <div style={{ 
+          backgroundColor: bgColor,
+          color: iconColor, 
+          fontSize: '40px',
+          display: 'flex',
+          alignItems: 'center', 
+          justifyContent: 'center',
+          width: '3.5rem',
+          height: '3.5rem',
+          borderRadius: '0.6rem'
+          }}>
           {icon}
         </div>
       </div>

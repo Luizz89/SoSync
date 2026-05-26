@@ -13,8 +13,6 @@ function Products() {
   const FORNECEDOR_ID = 'FxJRkTuDGTn9bfZm3Nwi'
 
   async function deletarProduto(id) {
-    if (!window.confirm('Tem certeza que deseja deletar este produto?')) return
-
     try {
       await deleteDoc(doc(db, `fornecedores/${FORNECEDOR_ID}/produtos`, id))
       setProdutos(produtos.filter(p => p.id !== id))
@@ -79,6 +77,7 @@ function Products() {
         isOpen={modalAberto}
         onClose={() => setModalAberto(false)}
         fornecedorId={FORNECEDOR_ID}
+        produtosExistentes={produtos}
       />
     </Layout>
   )

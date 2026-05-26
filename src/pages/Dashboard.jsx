@@ -7,6 +7,7 @@ import { AiOutlineAlert } from "react-icons/ai";
 import Layout from '../components/layout/Layout'
 import StatCard from '../components/StatCard'
 import TabelaEstoque from '../components/TabelaEstoque'
+import ListaClinicas from '../components/ListaClinicas'
 import AlertasCriticos from '../components/AlertasCriticos'
 import ClinicasCard from '../components/ClinicasCard'
 import { BiClinic } from "react-icons/bi";
@@ -117,8 +118,9 @@ function Dashboard() {
 
       {/* Tabela e Alertas */}
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px' }}>
+        <TabelaEstoque produtos={produtos} />
+        <ListaClinicas/> 
         <ClinicasCard/>
-        <AlertasCriticos produtos={produtos} />
       </div>
     </Layout>
   )

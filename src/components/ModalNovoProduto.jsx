@@ -365,6 +365,8 @@ function ModalNovoProduto({ isOpen, onClose, fornecedorId, produtosExistentes = 
                   backgroundColor: 'white',
                   color: 'var(--cor-texto)'
                 }}
+                onMouseOver={(e) => { e.currentTarget.style.backgroundColor = 'var(--cor-fundo-cinza)' }}
+                onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'white' }}
               >
                 Cancelar
               </button>

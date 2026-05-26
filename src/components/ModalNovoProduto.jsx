@@ -378,10 +378,13 @@ function ModalNovoProduto({ isOpen, onClose, fornecedorId, produtosExistentes = 
                   fontWeight: '500',
                   borderRadius: '10px',
                   border: 'none',
-                  background: salvando ? '#cccccc' : 'linear-gradient(135deg, var(--cor-primaria) 0%, #00B8A3 100%)',
+                  background: salvando ? '#cccccc' : 'var(--cor-primaria)',
                   color: 'white',
-                  cursor: salvando ? 'not-allowed' : 'pointer'
+                  cursor: salvando ? 'not-allowed' : 'pointer',
+                  transition: 'var(--default-transition)'
                 }}
+                onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(179, 179, 179, 0.4)' }}
+                onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'None' }}
               >
                 {salvando ? 'Salvando...' : 'Adicionar'}
               </button>

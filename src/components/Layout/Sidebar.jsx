@@ -52,7 +52,7 @@ function Sidebar() {
           marginBottom: '30px'
         }}
       >
-        SY
+        BS
       </div>
 
       {/* Botão Adicionar */}

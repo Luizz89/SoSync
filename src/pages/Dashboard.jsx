@@ -3,11 +3,13 @@ import { collection, onSnapshot,} from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { MdLocalGroceryStore } from 'react-icons/md'
 import { IoMdAlert } from 'react-icons/io'
-import { AiFillAlert } from 'react-icons/ai'
+import { AiOutlineAlert } from "react-icons/ai";
 import Layout from '../components/layout/Layout'
 import StatCard from '../components/StatCard'
 import TabelaEstoque from '../components/TabelaEstoque'
 import AlertasCriticos from '../components/AlertasCriticos'
+import { BiClinic } from "react-icons/bi";
+import { LuPackageCheck } from "react-icons/lu";
 
 
 function Dashboard() {
@@ -89,23 +91,23 @@ function Dashboard() {
           gap: '20px' 
         }}>
           <StatCard 
-            title="Total de produtos"
+            title="Clínicas Conectadas"
             value={totalProdutos}
-            icon={<MdLocalGroceryStore />}
+            icon={<BiClinic />}
             bgColor="var(--cor-card-verde)"
             iconColor="#00D9C0"
           />
           <StatCard 
-            title="Atenção"
+            title="Produtos cadastrados"
             value={produtosAtencao}
-            icon={<IoMdAlert />}
-            bgColor="var(--cor-card-amarelo)"
-            iconColor= "var(--cor-badge-atencao)"
+            icon={<LuPackageCheck />}
+            bgColor="var(--cor-azul-claro)"
+            iconColor= "var(--cor-azul)"
           />
           <StatCard 
             title="Críticos"
             value={produtosCriticos}
-            icon={<AiFillAlert />}
+            icon={<AiOutlineAlert />}
             bgColor="var(--cor-card-rosa)"
             iconColor="#FF6B6B"
           />

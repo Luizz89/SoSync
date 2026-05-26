@@ -1,14 +1,20 @@
-import { Link, useLocation } from 'react-router-dom'
-import { AiOutlineHome, AiOutlineBarChart } from 'react-icons/ai'
-import { MdContentCopy } from 'react-icons/md'
-import { IoMdAdd } from 'react-icons/io'
+import { Link, useLocation } from 'react-router-dom';
+import { AiOutlineHome, AiOutlineBarChart } from 'react-icons/ai';
+import { MdContentCopy, MdOutlineSupervisedUserCircle } from 'react-icons/md';
+import { IoMdAdd } from 'react-icons/io';
 import { VscArchive } from "react-icons/vsc";
-import { HiOutlineCalendar } from "react-icons/hi";
-import { HiOutlineDocumentSearch } from "react-icons/hi";
-import { MdOutlineSupervisedUserCircle } from "react-icons/md";
+import { HiOutlineCalendar, HiOutlineDocumentSearch } from "react-icons/hi";
+import { useState, useEffect } from 'react';
+import { collection, onSnapshot, doc, deleteDoc } from 'firebase/firestore'
+import { db } from '../../config/firebase';
+import ModalNovoProduto from '../ModalNovoProduto';
 
 function Sidebar() {
   const location = useLocation()
+  const [produtos, setProdutos] = useState([])
+  const [modalAberto, setModalAberto] = useState(false)
+
+  const FORNECEDOR_ID = 'FxJRkTuDGTn9bfZm3Nwi'
 
   const menuItems = [
     { path: '/', icon: <AiOutlineHome size={24} />, label: 'Dashboard' },
@@ -19,6 +25,25 @@ function Sidebar() {
   ]
 
   const isActive = (path) => location.pathname === path
+
+  useEffect(() => {
+      const produtosRef = collection(db, `fornecedores/${FORNECEDOR_ID}/produtos`)
+      
+      const unsubscribe = onSnapshot(produtosRef, (snapshot) => {
+        const dados = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }))
+  
+        dados.sort((a, b) => a.nome.localeCompare(b.nome))
+  
+        setProdutos(dados)
+      }, (error) => {
+        console.error('Erro ao carregar produtos:', error)
+      })
+  
+      return () => unsubscribe()
+    }, [])
 
   return (
     <div 
@@ -69,8 +94,9 @@ function Sidebar() {
           justifyContent: 'center',
           marginBottom: '40px',
           cursor: 'pointer',
-          transition: 'transform 0.2s'
+          transition: 'var(--default-transition)'
         }}
+        onClick={() => setModalAberto(true)}
         onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
         onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
       >
@@ -110,6 +136,12 @@ function Sidebar() {
           </Link>
         ))}
       </nav>
+      <ModalNovoProduto 
+        isOpen={modalAberto}
+        onClose={() => setModalAberto(false)}
+        fornecedorId={FORNECEDOR_ID}
+        produtosExistentes={produtos}
+      />
     </div>
   )
 }

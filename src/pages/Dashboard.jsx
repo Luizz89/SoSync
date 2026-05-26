@@ -1,30 +1,30 @@
 import { useState, useEffect } from 'react'
-import { collection, onSnapshot,} from 'firebase/firestore'
+import { collection, onSnapshot, query, where } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { MdLocalGroceryStore } from 'react-icons/md'
 import { IoMdAlert } from 'react-icons/io'
-import { AiOutlineAlert } from "react-icons/ai";
+import { AiOutlineAlert } from "react-icons/ai"
 import Layout from '../components/layout/Layout'
 import StatCard from '../components/StatCard'
 import TabelaEstoque from '../components/TabelaEstoque'
 import ListaClinicas from '../components/ListaClinicas'
 import AlertasCriticos from '../components/AlertasCriticos'
 import ClinicasCard from '../components/ClinicasCard'
-import { BiClinic } from "react-icons/bi";
-import { LuPackageCheck } from "react-icons/lu";
-
+import { BiClinic } from "react-icons/bi"
+import { LuPackageCheck } from "react-icons/lu"
 
 function Dashboard() {
   const [produtos, setProdutos] = useState([])
+  const [clinicas, setClinicas] = useState([])
   const [loading, setLoading] = useState(true)
 
   const FORNECEDOR_ID = 'FxJRkTuDGTn9bfZm3Nwi'
 
   useEffect(() => {
-    // onSnapshot escuta mudanças em tempo real
+    // Escuta produtos em tempo real
     const produtosRef = collection(db, `fornecedores/${FORNECEDOR_ID}/produtos`)
     
-    const unsubscribe = onSnapshot(produtosRef, (snapshot) => {
+    const unsubscribeProdutos = onSnapshot(produtosRef, (snapshot) => {
       const dados = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
@@ -44,8 +44,25 @@ function Dashboard() {
       setLoading(false)
     })
 
-    // Cleanup: cancela a escuta quando o componente desmontar
-    return () => unsubscribe()
+    // Escuta clínicas conectadas ao fornecedor em tempo real
+    const clinicasRef = collection(db, 'clinicas')
+    
+    const unsubscribeClinicas = onSnapshot(clinicasRef, (snapshot) => {
+      const dadosClinicas = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }))
+
+      setClinicas(dadosClinicas)
+    }, (error) => {
+      console.error('Erro ao carregar clínicas:', error)
+    })
+
+    // Cleanup: cancela ambas as escutas quando o componente desmontar
+    return () => {
+      unsubscribeProdutos()
+      unsubscribeClinicas()
+    }
   }, [])
 
   if (loading) {
@@ -61,6 +78,7 @@ function Dashboard() {
     )
   }
 
+  const totalClinicas = clinicas.length
   const totalProdutos = produtos.length
   const produtosCriticos = produtos.filter(p => (p.qtdAtual / p.qtdMaxima) < 0.2).length
   const produtosAtencao = produtos.filter(p => {
@@ -94,14 +112,14 @@ function Dashboard() {
         }}>
           <StatCard 
             title="Clínicas Conectadas"
-            value={totalProdutos}
+            value={totalClinicas}
             icon={<BiClinic />}
             bgColor="var(--cor-card-verde)"
             iconColor="#00D9C0"
           />
           <StatCard 
             title="Produtos cadastrados"
-            value={produtosAtencao}
+            value={totalProdutos}
             icon={<LuPackageCheck />}
             bgColor="var(--cor-azul-claro)"
             iconColor= "var(--cor-azul)"
@@ -118,13 +136,11 @@ function Dashboard() {
 
       {/* Tabela e Alertas */}
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px' }}>
-        <TabelaEstoque produtos={produtos} />
-        <ListaClinicas/> 
-        <ClinicasCard/>
+        <ClinicasCard clinicas={clinicas} />
+        <ListaClinicas clinicas={clinicas} /> 
       </div>
     </Layout>
   )
 }
-
 
 export default Dashboard

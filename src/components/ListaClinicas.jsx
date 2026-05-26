@@ -45,7 +45,6 @@ function ListaClinicas() {
     return { backgroundColor: '#E5FBF8', color: '#00D9C0' }
   }
 
-
   return (
     <div style={{
       backgroundColor: 'white', borderRadius: '20px',
@@ -73,7 +72,6 @@ function ListaClinicas() {
                 padding: '16px',
                 backgroundColor: '#FAFAFA',
                 color: 'var(--cor-texto)',
-                border: '1px solid #E8E8E8',
                 borderRadius: '12px',
                 display: 'flex',
                 justifyContent: 'space-between', 
@@ -87,11 +85,6 @@ function ListaClinicas() {
                     marginBottom: '4px', 
                     fontFamily: 'Inter, sans-serif' }}>
                     {clinica.nome}
-                </span>
-                <span style={{ color: 'var(--cor-texto-secundario)',
-                    fontSize: '12px',
-                    display: 'block' }}>
-                  {clinica.totalProdutos} produto(s) no estoque
                 </span>
                 {clinica.criticos > 0 && (
                   <span style={{ color: '#FF6B6B', 

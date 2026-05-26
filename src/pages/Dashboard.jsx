@@ -7,7 +7,7 @@ import { AiFillAlert } from 'react-icons/ai'
 import Layout from '../components/layout/Layout'
 import StatCard from '../components/StatCard'
 import TabelaEstoque from '../components/TabelaEstoque'
-import AlertasCriticos from '../components/AlertasCriticos'
+import ListaClinicas from '../components/ListaClinicas'
 
 
 function Dashboard() {
@@ -115,7 +115,7 @@ function Dashboard() {
       {/* Tabela e Alertas */}
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px' }}>
         <TabelaEstoque produtos={produtos} />
-        <AlertasCriticos produtos={produtos} />
+        <ListaClinicas/>
       </div>
     </Layout>
   )

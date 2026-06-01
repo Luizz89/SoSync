@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { AiOutlineHome, AiOutlineBarChart } from 'react-icons/ai';
 import { MdContentCopy, MdOutlineSupervisedUserCircle } from 'react-icons/md';
+import { LuPackage } from "react-icons/lu";
 import { IoMdAdd } from 'react-icons/io';
 import { VscArchive } from "react-icons/vsc";
 import { HiOutlineCalendar, HiOutlineDocumentSearch } from "react-icons/hi";
@@ -18,7 +19,7 @@ function Sidebar() {
 
   const menuItems = [
     { path: '/', icon: <AiOutlineHome size={24} />, label: 'Dashboard' },
-    { path: '/estoque', icon: <VscArchive size={24}/>, label: 'Controle de Estoque' },
+    { path: '/estoque', icon: <LuPackage size={24}/>, label: 'Controle de Estoque' },
     { path: '/agenda', icon: <HiOutlineCalendar size={24} />, label: 'Agenda' },
     { path: '/docs', icon: <HiOutlineDocumentSearch size={24} />, label: 'Docs' },
     { path: '/clinica', icon: <MdOutlineSupervisedUserCircle size={24} />, label: 'Perfil Clinica' },

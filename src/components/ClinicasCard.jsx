@@ -70,8 +70,10 @@ function ClinicasCard() {
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'left',
-                gap: '12px'
-            }}>
+                gap: '12px',
+                cursor: 'pointer'
+            }} onMouseOver={(e) => { e.currentTarget.style.backgroundColor = 'var(--cor-fundo-cinza)' }}
+                onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'white' }}>
             <span style={{
                 padding: '6px 14px', borderRadius: '8px',
                 fontSize: '13px', fontWeight: '500',

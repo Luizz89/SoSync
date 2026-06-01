@@ -51,7 +51,7 @@ function ListaClinicas() {
       padding: '32px', height: '100%'
     }}>
       <h5 style={{ margin: '0 0 24px 0', color: 'var(--cor-texto)', fontWeight: '400', fontSize: '18px' }}>
-        Clínicas Conectadas
+        Alertas de ruptura
       </h5>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '500px', overflowY: 'auto' }}>

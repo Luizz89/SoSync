@@ -1,43 +1,52 @@
 import { useState, useEffect } from 'react'
-import { collection, onSnapshot, getDocs } from 'firebase/firestore'
-import { db } from '../config/firebase'
+import { supabase } from '../config/supabase'
 
 function ClinicasCard() {
   const [clinicas, setClinicas] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const clinicasRef = collection(db, 'clinicas')
+    async function carregarClinicas() {
+      const { data: clinicasData, error: erroClinicas } = await supabase
+        .from('clinicas')
+        .select('*')
 
-    const unsubscribe = onSnapshot(clinicasRef, async (snapshot) => {
+      if (erroClinicas) {
+        console.error('Erro ao carregar clínicas:', erroClinicas)
+        setLoading(false)
+        return
+      }
+
       const dados = await Promise.all(
-        snapshot.docs.map(async (docClinica) => {
-          const clinica = { id: docClinica.id, ...docClinica.data() }
+        clinicasData.map(async (clinica) => {
+          const { data: produtos, error: erroProdutos } = await supabase
+            .from('produtos')
+            .select('id')
+            .eq('clinica_id', clinica.id)
 
-          // Busca o estoque da clínica
-          const estoqueRef = collection(db, `clinicas/${clinica.id}/estoque-clinica`)
-          const estoqueSnapshot = await getDocs(estoqueRef)
-          const produtos = estoqueSnapshot.docs.map(d => d.data())
+          if (erroProdutos) {
+            console.error('Erro ao carregar produtos:', erroProdutos)
+            return { ...clinica, totalProdutos: 0 }
+          }
 
-          const totalProdutos = produtos.length
-
-          return { ...clinica, totalProdutos}
+          return { ...clinica, totalProdutos: produtos.length }
         })
       )
 
       setClinicas(dados)
       setLoading(false)
-    })
+    }
 
-    return () => unsubscribe()
+    carregarClinicas()
+
+    const subscription = supabase
+      .channel('clinicas-card')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'clinicas' }, carregarClinicas)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'produtos' }, carregarClinicas)
+      .subscribe()
+
+    return () => supabase.removeChannel(subscription)
   }, [])
-
-  function getStatusStyle(status) {
-    if (status === 'Faltando') return { backgroundColor: '#FFE5E5', color: '#FF6B6B' }
-    if (status === 'Atenção') return { backgroundColor: '#fcf9ef', color: '#FFB800' }
-    return { backgroundColor: '#E5FBF8', color: '#00D9C0' }
-  }
-
 
   return (
     <div style={{
@@ -54,10 +63,7 @@ function ClinicasCard() {
             <div className="spinner-border spinner-border-sm" style={{ color: 'var(--cor-primaria)' }} />
           </div>
         ) : clinicas.length === 0 ? (
-          <div style={{ padding: '32px',
-            textAlign: 'center', 
-            color: 'var(--cor-texto-secundario)',
-            fontSize: '14px' }}>
+          <div style={{ padding: '32px', textAlign: 'center', color: 'var(--cor-texto-secundario)', fontSize: '14px' }}>
             <p style={{ margin: 0 }}>Nenhuma clínica conectada.</p>
           </div>
         ) : (
@@ -74,31 +80,30 @@ function ClinicasCard() {
                 cursor: 'pointer'
             }} onMouseOver={(e) => { e.currentTarget.style.backgroundColor = 'var(--cor-fundo-cinza)' }}
                 onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'white' }}>
-            <span style={{
-                padding: '6px 14px', borderRadius: '8px',
-                fontSize: '13px', fontWeight: '500',
-                color: 'var(--cor-primaria)', 
-                backgroundColor: 'var(--cor-card-verde)', 
-                width: 'fit-content'
-                }}>
-                Ativa
-            </span>
-            <div>
-                <span style={{ color: 'var(--cor-texto)',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    display: 'block',
-                    marginBottom: '4px', 
-                    fontFamily: 'Inter, sans-serif' }}>
-                    {clinica.nome}
-                </span>
-                <span style={{ color: 'var(--cor-texto-secundario)',
-                    fontSize: '12px',
-                    display: 'block' }}>
-                {clinica.totalProdutos} produto(s) no estoque
-                </span>
-            </div>
-              
+              <span style={{
+                  padding: '6px 14px', borderRadius: '8px',
+                  fontSize: '13px', fontWeight: '500',
+                  color: 'var(--cor-primaria)', 
+                  backgroundColor: 'var(--cor-card-verde)', 
+                  width: 'fit-content'
+                  }}>
+                  Ativa
+              </span>
+              <div>
+                  <span style={{ color: 'var(--cor-texto)',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      display: 'block',
+                      marginBottom: '4px', 
+                      fontFamily: 'Inter, sans-serif' }}>
+                      {clinica.nome}
+                  </span>
+                  <span style={{ color: 'var(--cor-texto-secundario)',
+                      fontSize: '12px',
+                      display: 'block' }}>
+                  {clinica.totalProdutos} produto(s) no estoque
+                  </span>
+              </div>
             </div>
           ))
         )}

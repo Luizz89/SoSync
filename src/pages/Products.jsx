@@ -10,7 +10,7 @@ function Products() {
   const [loading, setLoading] = useState(true)
   const [modalAberto, setModalAberto] = useState(false)
 
-  const FORNECEDOR_ID = 'FxJRkTuDGTn9bfZm3Nwi'
+  const FORNECEDOR_ID = ' '
 
   async function deletarProduto(id) {
     try {

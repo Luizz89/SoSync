@@ -1,18 +1,24 @@
+// src/App.jsx
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { AuthProvider } from './context/AuthContext.jsx'
+import ProtectedRoute from './components/ProtectedRoute'
+import LoginClinica from './pages/LoginClinica'
+import Dashboard from './pages/Dashboard'
 import DashboardClinica from './pages/DashboardClinica'
 import Products from './pages/Products'
 import EstoqueClinica from './pages/EstoqueClinica'
 
-function App() {
+
+export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path='/' element={<DashboardClinica/>} />
-        <Route path='/estoque' element={<Products/>} />
-        <Route path='/estoque-clinica' element={<EstoqueClinica/>} />
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<LoginClinica />} />
+          <Route path="/dashboard" element={<ProtectedRoute><DashboardClinica/></ProtectedRoute>} />
+           <Route path='/estoque' element={<ProtectedRoute><EstoqueClinica/></ProtectedRoute>} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   )
 }
-
-export default App

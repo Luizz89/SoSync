@@ -1,111 +1,109 @@
 import { useState, useEffect } from 'react'
-import { doc, updateDoc } from 'firebase/firestore'
-import { db } from '../config/firebase'
+import { supabase } from '../config/supabase'
+import { IoMdClose } from 'react-icons/io'
 
-function ModalEditarProduto({ isOpen, onClose, produto, fornecedorId }) {
-  const [form, setForm] = useState({
+function ModalEditarProduto({ isOpen, onClose, produto }) {
+  const [formData, setFormData] = useState({
     nome: '',
-    qtdAtual: '',
-    qtdMaxima: '',
-    unidade: '',
-    dataEntrada: '',
-    validade: '',
-    preco: ''
+    quantidade: '',
+    validade: ''
   })
   const [salvando, setSalvando] = useState(false)
+  const [erro, setErro] = useState('')
 
   useEffect(() => {
     if (produto) {
-      setForm({
+      setFormData({
         nome: produto.nome || '',
-        qtdAtual: produto.qtdAtual || '',
-        qtdMaxima: produto.qtdMaxima || '',
-        unidade: produto.unidade || '',
-        dataEntrada: produto.dataEntrada || '',
-        validade: produto.validade || '',
-        preco: produto.preco || ''
+        quantidade: produto.quantidade || '',
+        validade: produto.validade || ''
       })
     }
   }, [produto])
 
-  async function salvar() {
-    setSalvando(true)
-    try {
-      const produtoRef = doc(db, `fornecedores/${fornecedorId}/produtos`, produto.id)
-      await updateDoc(produtoRef, {
-        nome: form.nome,
-        qtdAtual: Number(form.qtdAtual),
-        qtdMaxima: Number(form.qtdMaxima),
-        unidade: form.unidade,
-        dataEntrada: form.dataEntrada,
-        validade: form.validade,
-        preco: Number(form.preco)
-      })
-      onClose()
-    } catch (erro) {
-      console.error('Erro ao editar produto:', erro)
-      alert('Erro ao salvar alterações.')
-    } finally {
-      setSalvando(false)
+  function handleChange(e) {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    setErro('')
+
+    if (!formData.nome.trim()) {
+      setErro('Nome do produto é obrigatório')
+      return
     }
+
+    if (!formData.quantidade || parseInt(formData.quantidade) < 0) {
+      setErro('Quantidade inválida')
+      return
+    }
+
+    setSalvando(true)
+
+    const { error } = await supabase
+      .from('produtos')
+      .update({
+        nome: formData.nome.trim(),
+        quantidade: parseInt(formData.quantidade),
+        validade: formData.validade || null
+      })
+      .eq('id', produto.id)
+
+    if (error) {
+      console.error('Erro ao editar produto:', error)
+      setErro('Erro ao salvar alterações. Tente novamente.')
+    } else {
+      onClose()
+    }
+
+    setSalvando(false)
   }
 
   if (!isOpen) return null
 
   return (
-    <div style={{
-      position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-      backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex',
-      justifyContent: 'center', alignItems: 'center', zIndex: 1000
-    }}>
-      <div style={{
-        backgroundColor: 'white', borderRadius: '20px',
-        padding: '32px', width: '500px', boxShadow: '0 8px 32px rgba(0,0,0,0.12)'
-      }}>
-        <h5 style={{ marginBottom: '24px', fontWeight: '500' }}>Editar Produto</h5>
-
-        {[
-          { label: 'Nome', key: 'nome', type: 'text' },
-          { label: 'Quantidade Atual', key: 'qtdAtual', type: 'number' },
-          { label: 'Quantidade Máxima', key: 'qtdMaxima', type: 'number' },
-          { label: 'Unidade', key: 'unidade', type: 'text' },
-          { label: 'Data de Entrada', key: 'dataEntrada', type: 'text' },
-          { label: 'Validade', key: 'validade', type: 'text' },
-          { label: 'Preço', key: 'preco', type: 'number' }
-        ].map(({ label, key, type }) => (
-          <div key={key} style={{ marginBottom: '16px' }}>
-            <label style={{ fontSize: '14px', color: 'var(--cor-texto-secundario)', marginBottom: '6px', display: 'block' }}>
-              {label}
-            </label>
-            <input
-              type={type}
-              value={form[key]}
-              onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-              style={{
-                width: '100%', padding: '10px 14px', borderRadius: '10px',
-                border: '1px solid #E8E8E8', fontSize: '14px', outline: 'none'
-              }}
-            />
-          </div>
-        ))}
-
-        <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
-          <button
-            onClick={onClose}
-            className="btn"
-            style={{ flex: 1, padding: '12px', borderRadius: '12px', border: '1px solid #E8E8E8', fontSize: '14px' }}
-          >
-            Cancelar
-          </button>
-          <button
-            onClick={salvar}
-            disabled={salvando}
-            className="btn"
-            style={{ flex: 1, padding: '12px', borderRadius: '12px', background: 'var(--cor-primaria)', color: 'white', border: 'none', fontSize: '14px' }}
-          >
-            {salvando ? 'Salvando...' : 'Salvar'}
+    <div onClick={onClose} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ backgroundColor: 'white', borderRadius: '20px', padding: '32px', width: '90%', maxWidth: '500px', boxShadow: '0 10px 40px rgba(0,0,0,0.2)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+          <h5 style={{ margin: 0, fontSize: '20px', fontWeight: '500', color: 'var(--cor-texto)' }}>Editar Produto</h5>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cor-texto-secundario)' }}>
+            <IoMdClose size={24} />
           </button>
         </div>
+
+        <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: 'var(--cor-texto)' }}>Nome</label>
+            <input type="text" name="nome" value={formData.nome} onChange={handleChange} placeholder="Nome do produto" className="form-control" style={{ padding: '12px 16px', fontSize: '14px', borderRadius: '10px', border: '1px solid #E8E8E8' }} />
+          </div>
+
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: 'var(--cor-texto)' }}>Quantidade</label>
+            <input type="number" name="quantidade" value={formData.quantidade} onChange={handleChange} placeholder="0" min="0" className="form-control" style={{ padding: '12px 16px', fontSize: '14px', borderRadius: '10px', border: '1px solid #E8E8E8' }} />
+          </div>
+
+          <div style={{ marginBottom: '24px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: 'var(--cor-texto)' }}>Data de Validade</label>
+            <input type="date" name="validade" value={formData.validade} onChange={handleChange} className="form-control" style={{ padding: '12px 16px', fontSize: '14px', borderRadius: '10px', border: '1px solid #E8E8E8' }} />
+          </div>
+
+          {erro && (
+            <div style={{ padding: '12px', backgroundColor: '#FFE5E5', color: '#FF6B6B', borderRadius: '8px', fontSize: '13px', marginBottom: '16px' }}>
+              {erro}
+            </div>
+          )}
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <button type="button" onClick={onClose} className="btn" style={{ padding: '12px', fontSize: '14px', fontWeight: '500', borderRadius: '10px', border: '1px solid #E8E8E8', backgroundColor: 'white', color: 'var(--cor-texto)' }}>
+              Cancelar
+            </button>
+            <button type="submit" disabled={salvando} className="btn" style={{ padding: '12px', fontSize: '14px', fontWeight: '500', borderRadius: '10px', border: 'none', background: salvando ? '#cccccc' : 'linear-gradient(135deg, var(--cor-primaria) 0%, #00B8A3 100%)', color: 'white', cursor: salvando ? 'not-allowed' : 'pointer' }}>
+              {salvando ? 'Salvando...' : 'Salvar'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   )

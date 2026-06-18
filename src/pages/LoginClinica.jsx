@@ -26,26 +26,52 @@ export default function LoginClinica() {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h1>Entrar</h1>
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
-      <input
-        type="password"
-        placeholder="Senha"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-      />
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <button type="submit" disabled={loading}>
-        {loading ? 'Entrando...' : 'Entrar'}
-      </button>
-    </form>
+    <div style={{
+        display: "flex", 
+        height: "100vh",
+        justifyContent: "center",
+        alignItems: "center",
+    }}>
+        <form onSubmit={handleSubmit} style={{
+        backgroundColor: "white", 
+        width: "20%",
+        padding: "1rem", 
+        display: "flex", 
+        flexDirection: "column", 
+        gap: "0.75rem",
+        borderRadius: "0.6rem"}}>
+            <h1>Entrar</h1>
+            <div class="form-group">
+                <label for="exampleInputEmail1">Email address</label>
+                <input
+                class="form-control"
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                />
+            </div>
+            <div className="form-group">
+                <label for="exampleInputPassword1">Password</label>
+                <input
+                class="form-control"
+                type="password"
+                placeholder="Senha"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                />
+            </div>
+            <div class="form-group form-check">
+                <input type="checkbox" class="form-check-input" id="exampleCheck1"/>
+                <label class="form-check-label" for="exampleCheck1">Check me out</label>
+            </div>
+            {error && <p style={{ color: 'red' }}>{error}</p>}
+            <button className="btn btn-primary" type="submit" disabled={loading}>
+            {loading ? 'Entrando...' : 'Entrar'}
+            </button>
+        </form>
+    </div>
   )
 }

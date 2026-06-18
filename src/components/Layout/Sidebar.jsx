@@ -13,7 +13,7 @@ function Sidebar() {
   const [modalAberto, setModalAberto] = useState(false)
 
   const menuItems = [
-    { path: '/', icon: <AiOutlineHome size={24} />, label: 'Dashboard' },
+    { path: '/dashboard', icon: <AiOutlineHome size={24} />, label: 'Dashboard' },
     { path: '/estoque', icon: <LuPackage size={24}/>, label: 'Controle de Estoque' },
     { path: '/estoque-clinica', icon: <VscArchive size={24}/>, label: 'Estoque Clínica' },
     { path: '/agenda', icon: <HiOutlineCalendar size={24} />, label: 'Agenda' },

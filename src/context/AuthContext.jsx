@@ -6,7 +6,8 @@ const AuthContext = createContext(undefined)
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null)
   const [clinica, setClinica] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(true)       // sessão ainda sendo verificada
+  const [clinicaLoading, setClinicaLoading] = useState(false) // dados da clínica sendo buscados
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -21,20 +22,29 @@ export function AuthProvider({ children }) {
     return () => listener.subscription.unsubscribe()
   }, [])
 
-  // Busca os dados da clínica (nome, endereço etc.) sempre que a sessão muda
+  // Busca os dados da clínica sempre que a sessão muda
   useEffect(() => {
     if (!session?.user) {
       setClinica(null)
       return
     }
+
+    setClinicaLoading(true)
+
     supabase
       .from('clinicas')
       .select('*')
       .eq('id', session.user.id)
       .single()
       .then(({ data, error }) => {
-        if (error) console.error('Erro ao buscar clínica:', error.message)
-        else setClinica(data)
+        if (error) {
+          // Perfil ainda não criado ou erro real — ambos precisam ser tratados
+          console.error('Erro ao buscar dados da clínica:', error.message)
+          setClinica(null)
+        } else {
+          setClinica(data)
+        }
+        setClinicaLoading(false)
       })
   }, [session])
 
@@ -44,7 +54,14 @@ export function AuthProvider({ children }) {
   const signOut = () => supabase.auth.signOut()
 
   return (
-    <AuthContext.Provider value={{ session, clinica, loading, signIn, signOut }}>
+    <AuthContext.Provider value={{
+      session,
+      clinica,
+      loading,
+      clinicaLoading,
+      signIn,
+      signOut,
+    }}>
       {children}
     </AuthContext.Provider>
   )

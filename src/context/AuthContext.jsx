@@ -6,8 +6,8 @@ const AuthContext = createContext(undefined)
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null)
   const [clinica, setClinica] = useState(null)
-  const [loading, setLoading] = useState(true)       // sessão ainda sendo verificada
-  const [clinicaLoading, setClinicaLoading] = useState(false) // dados da clínica sendo buscados
+  const [loading, setLoading] = useState(true)
+  const [clinicaLoading, setClinicaLoading] = useState(false)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -17,12 +17,13 @@ export function AuthProvider({ children }) {
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession)
+      // Garante que o loading some mesmo num signOut
+      if (!newSession) setLoading(false)
     })
 
     return () => listener.subscription.unsubscribe()
   }, [])
 
-  // Busca os dados da clínica sempre que a sessão muda
   useEffect(() => {
     if (!session?.user) {
       setClinica(null)
@@ -38,7 +39,6 @@ export function AuthProvider({ children }) {
       .single()
       .then(({ data, error }) => {
         if (error) {
-          // Perfil ainda não criado ou erro real — ambos precisam ser tratados
           console.error('Erro ao buscar dados da clínica:', error.message)
           setClinica(null)
         } else {
@@ -48,20 +48,15 @@ export function AuthProvider({ children }) {
       })
   }, [session])
 
+  // signIn retorna { data, error } — o componente decide o que fazer com o erro
   const signIn = (email, password) =>
     supabase.auth.signInWithPassword({ email, password })
 
+  // signOut limpa tudo; o onAuthStateChange cuida de zerar a session
   const signOut = () => supabase.auth.signOut()
 
   return (
-    <AuthContext.Provider value={{
-      session,
-      clinica,
-      loading,
-      clinicaLoading,
-      signIn,
-      signOut,
-    }}>
+    <AuthContext.Provider value={{ session, clinica, loading, clinicaLoading, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   )

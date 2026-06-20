@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabaseClient'
 export default function LoginClinica() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [rememberMe, setRememberMe] = useState(false)
+  const [rememberMe, setRememberMe] = useState(false) // UI mantida, lógica real depois
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
   const [forgotSent, setForgotSent] = useState(false)
@@ -18,11 +18,7 @@ export default function LoginClinica() {
     setError(null)
     setLoading(true)
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-      options: { persistSession: rememberMe },
-    })
+    const { error } = await signIn(email, password) // ← agora usa o contexto
 
     setLoading(false)
     if (error) {
@@ -46,12 +42,7 @@ export default function LoginClinica() {
   }
 
   return (
-    <div style={{
-      display: 'flex',
-      height: '100vh',
-      justifyContent: 'center',
-      alignItems: 'center',
-    }}>
+    <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center' }}>
       <form
         onSubmit={handleSubmit}
         style={{
@@ -105,9 +96,7 @@ export default function LoginClinica() {
               Mantenha-me Conectado
             </label>
           </div>
-          <a href="#" onClick={handleForgotPassword}>
-            Esqueci a senha
-          </a>
+          <a href="#" onClick={handleForgotPassword}>Esqueci a senha</a>
         </div>
 
         {forgotSent && (
@@ -115,18 +104,9 @@ export default function LoginClinica() {
             Email de redefinição enviado! Verifique sua caixa de entrada.
           </p>
         )}
+        {error && <p style={{ color: 'red', margin: 0 }}>{error}</p>}
 
-        {error && (
-          <p style={{ color: 'red', margin: 0 }}>
-            {error}
-          </p>
-        )}
-
-        <button
-          className="btn btn-primary mt-4"
-          type="submit"
-          disabled={loading}
-        >
+        <button className="btn btn-primary mt-4" type="submit" disabled={loading}>
           {loading ? 'Entrando...' : 'Entrar'}
         </button>
       </form>

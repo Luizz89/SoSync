@@ -7,6 +7,7 @@ import { VscArchive } from "react-icons/vsc";
 import { HiOutlineCalendar, HiOutlineDocumentSearch } from "react-icons/hi";
 import { useState } from 'react';
 import ModalNovoProduto from '../ModalNovoProduto';
+import { HiOutlineClipboardList } from "react-icons/hi";
 
 function Sidebar() {
   const location = useLocation()
@@ -19,6 +20,7 @@ function Sidebar() {
     { path: '/agenda', icon: <HiOutlineCalendar size={24} />, label: 'Agenda' },
     { path: '/docs', icon: <HiOutlineDocumentSearch size={24} />, label: 'Docs' },
     { path: '/logout', icon: <LuLogOut size={24} />, label: 'Sair' },
+    { path: '/pedidos', icon: <HiOutlineClipboardList size={24}/>, label: 'Pedidos' },
   ]
 
   const isActive = (path) => location.pathname === path

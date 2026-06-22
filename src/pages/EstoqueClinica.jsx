@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useAuth } from '../context/AuthContext'
 import { supabase } from '../config/supabase'
 import Layout from '../components/layout/Layout'
 import TabelaEstoqueClinica from '../components/TabelaEstoqueClinica'
@@ -10,9 +11,8 @@ function EstoqueClinica() {
   const [loading, setLoading] = useState(true)
   const [modalAberto, setModalAberto] = useState(false)
 
-  // Por enquanto sem autenticação, usando ID fixo para teste
-  const CLINICA_ID = 'cdab23c6-f93f-4217-9d36-5478c745e42f'
-
+  const { session, loading: authLoading } = useAuth()
+  const CLINICA_ID = session?.user?.id
   
   async function carregarProdutos() {
     const { data, error } = await supabase
@@ -34,25 +34,33 @@ function EstoqueClinica() {
       .from('estoque_clinica')
       .delete()
       .eq('id', id)
+      .eq('clinica_id', CLINICA_ID)
 
     if (error) {
       console.error('Erro ao deletar produto:', error)
       alert('Erro ao deletar produto.')
     } else {
-      setProdutos(produtos.filter(p => p.id !== id))
+      setProdutos(prev => prev.filter(p => p.id !== id))
     }
   }
 
   useEffect(() => {
+    if (authLoading || !CLINICA_ID) return
+    
     carregarProdutos()
 
     const subscription = supabase
-      .channel('estoque-clinica')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'estoque_clinica' }, carregarProdutos)
+      .channel('estoque-clinica-${CLINICA_ID}')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'estoque_clinica',
+        filter: 'clinica_id=eq.${CLINICA_ID}' 
+      }, carregarProdutos)
       .subscribe()
 
     return () => supabase.removeChannel(subscription)
-  }, [])
+  }, [CLINICA_ID, authLoading])
 
   if (loading) {
     return (

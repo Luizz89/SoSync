@@ -28,6 +28,7 @@ function Products() {
       .from('produtos')
       .delete()
       .eq('id', id)
+      .eq('clinica_id', clinica_id)
 
     if (error) {
       console.error('Erro ao deletar produto:', error)

@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard'
 import DashboardClinica from './pages/DashboardClinica'
 import Products from './pages/Products'
 import EstoqueClinica from './pages/EstoqueClinica'
+import PerfilClinica from './pages/PerfilClinica.jsx'
 
 
 export default function App() {
@@ -19,10 +20,11 @@ export default function App() {
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<DashboardClinica />} />
               <Route path='/estoque' element={<EstoqueClinica/>} />
+              <Route path="/perfil" element={<PerfilClinica />}/>
             </Route>
 
+            {/* Fallback */}
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
-            <Route path="*" element={<Navigate to="/estoque" replace />} />
           </Routes>
       </AuthProvider>
     </BrowserRouter>

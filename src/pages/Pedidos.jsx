@@ -8,21 +8,27 @@ import { BsCalendar3, BsBoxSeam, BsCurrencyDollar } from 'react-icons/bs'
 import { HiOutlineClipboardCheck } from 'react-icons/hi'
 
 function Pedidos() {
-  const { clinica } = useAuth()
+  const { clinica, session } = useAuth()
   const [pedidos, setPedidos] = useState([])
+  const [fornecedores, setFornecedores] = useState([])
+  const [marcas, setMarcas] = useState([])
+  const [marcasFiltradas, setMarcasFiltradas] = useState([])
   const [loading, setLoading] = useState(true)
   const [criandoPedido, setCriandoPedido] = useState(false)
   const [pedidoAberto, setPedidoAberto] = useState(null)
   const [itens, setItens] = useState([])
+  const [fornecedorSelecionado, setFornecedorSelecionado] = useState('')
+  const [marcaSelecionada, setMarcaSelecionada] = useState('')
 
   const CLINICA_ID = clinica?.id
+  const USUARIO_ID = session?.user?.id
 
   async function carregarPedidos() {
     if (!CLINICA_ID) return
 
     const { data, error } = await supabase
       .from('pedidos')
-      .select('*, pedido_itens(*)')
+      .select('*, marcas(nome, fornecedores(nome))')
       .eq('clinica_id', CLINICA_ID)
       .order('created_at', { ascending: false })
 
@@ -34,19 +40,54 @@ function Pedidos() {
     setLoading(false)
   }
 
+  async function carregarFornecedores() {
+    const { data, error } = await supabase
+      .from('fornecedores')
+      .select('*')
+      .order('nome')
+
+    if (!error) setFornecedores(data)
+  }
+
+  async function carregarMarcas() {
+    const { data, error } = await supabase
+      .from('marcas')
+      .select('*, fornecedores(nome)')
+      .order('nome')
+
+    if (!error) setMarcas(data)
+  }
+
+  function filtrarMarcasPorFornecedor(fornecedorId) {
+    setFornecedorSelecionado(fornecedorId)
+    setMarcaSelecionada('')
+    if (!fornecedorId) {
+      setMarcasFiltradas([])
+      return
+    }
+    setMarcasFiltradas(marcas.filter(m => m.fornecedor_id === fornecedorId))
+  }
+
   async function criarPedido() {
     if (!CLINICA_ID) return
+    if (!marcaSelecionada) {
+      alert('Selecione um fornecedor e uma marca antes de criar o pedido.')
+      return
+    }
+
     setCriandoPedido(true)
 
     const { data, error } = await supabase
       .from('pedidos')
       .insert({
         clinica_id: CLINICA_ID,
+        usuario_id: USUARIO_ID,
+        marca_id: marcaSelecionada,
         status: 'pendente',
         quantidade_itens: 0,
         valor_total: 0
       })
-      .select()
+      .select('*, marcas(nome, fornecedores(nome))')
       .single()
 
     if (error) {
@@ -54,6 +95,9 @@ function Pedidos() {
     } else {
       setPedidoAberto(data)
       setItens([])
+      setFornecedorSelecionado('')
+      setMarcaSelecionada('')
+      setMarcasFiltradas([])
       await carregarPedidos()
     }
     setCriandoPedido(false)
@@ -156,7 +200,6 @@ function Pedidos() {
 
     if (error) {
       console.error('Erro ao realizar pedido:', error)
-      alert('Erro ao realizar pedido.')
     } else {
       setPedidoAberto(prev => ({ ...prev, status: 'em_separacao' }))
       await carregarPedidos()
@@ -170,7 +213,11 @@ function Pedidos() {
   }
 
   useEffect(() => {
-    if (CLINICA_ID) carregarPedidos()
+    if (CLINICA_ID) {
+      carregarPedidos()
+      carregarFornecedores()
+      carregarMarcas()
+    }
   }, [CLINICA_ID])
 
   function getStatusStyle(status) {
@@ -193,6 +240,17 @@ function Pedidos() {
     appearance: 'textfield'
   }
 
+  const selectStyle = {
+    padding: '8px 12px',
+    borderRadius: '8px',
+    border: '1px solid #E8E8E8',
+    fontSize: '13px',
+    outline: 'none',
+    cursor: 'pointer',
+    backgroundColor: 'white',
+    color: 'var(--cor-texto)'
+  }
+
   if (loading) return (
     <div style={{
       display: 'flex',
@@ -206,7 +264,6 @@ function Pedidos() {
 
   return (
     <Layout headerTitle="Pedidos">
-      {/* Remove setas dos inputs numéricos */}
       <style>{`
         input[type=number]::-webkit-outer-spin-button,
         input[type=number]::-webkit-inner-spin-button {
@@ -231,40 +288,104 @@ function Pedidos() {
           padding: '24px',
           boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
         }}>
+          <h5 style={{
+            margin: '0 0 16px 0',
+            fontWeight: '500',
+            fontSize: '18px',
+            color: 'var(--cor-texto)'
+          }}>
+            Novo Pedido
+          </h5>
+
+          {/* Seleção de Fornecedor e Marca */}
           <div style={{
             display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '20px'
+            flexDirection: 'column',
+            gap: '10px',
+            marginBottom: '20px',
+            padding: '16px',
+            backgroundColor: '#FAFAFA',
+            borderRadius: '12px'
           }}>
-            <h5 style={{
-              margin: 0,
-              fontWeight: '500',
-              fontSize: '18px',
-              color: 'var(--cor-texto)'
-            }}>
-              Pedidos
-            </h5>
+            <div>
+              <label style={{
+                fontSize: '12px',
+                color: 'var(--cor-texto-secundario)',
+                display: 'block',
+                marginBottom: '6px'
+              }}>
+                Fornecedor
+              </label>
+              <select
+                value={fornecedorSelecionado}
+                onChange={(e) => filtrarMarcasPorFornecedor(e.target.value)}
+                style={{ ...selectStyle, width: '100%' }}
+              >
+                <option value="">Selecione o fornecedor</option>
+                {fornecedores.map(f => (
+                  <option key={f.id} value={f.id}>{f.nome}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label style={{
+                fontSize: '12px',
+                color: 'var(--cor-texto-secundario)',
+                display: 'block',
+                marginBottom: '6px'
+              }}>
+                Marca
+              </label>
+              <select
+                value={marcaSelecionada}
+                onChange={(e) => setMarcaSelecionada(e.target.value)}
+                disabled={!fornecedorSelecionado}
+                style={{
+                  ...selectStyle,
+                  width: '100%',
+                  opacity: !fornecedorSelecionado ? 0.5 : 1
+                }}
+              >
+                <option value="">Selecione a marca</option>
+                {marcasFiltradas.map(m => (
+                  <option key={m.id} value={m.id}>{m.nome}</option>
+                ))}
+              </select>
+            </div>
+
             <button
               onClick={criarPedido}
-              disabled={criandoPedido}
+              disabled={criandoPedido || !marcaSelecionada}
               className="btn"
               style={{
-                background: 'var(--cor-primaria)',
+                background: !marcaSelecionada ? '#cccccc' : 'var(--cor-primaria)',
                 color: 'white',
                 border: 'none',
                 borderRadius: '10px',
-                padding: '8px 16px',
+                padding: '10px 16px',
                 fontSize: '14px',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px'
+                justifyContent: 'center',
+                gap: '6px',
+                cursor: !marcaSelecionada ? 'not-allowed' : 'pointer'
               }}
             >
               <MdOutlineAddCircleOutline size={18} />
-              {criandoPedido ? 'Criando...' : 'Novo Pedido'}
+              {criandoPedido ? 'Criando...' : 'Criar Pedido'}
             </button>
           </div>
+
+          {/* Lista de Pedidos existentes */}
+          <h6 style={{
+            margin: '0 0 12px 0',
+            fontWeight: '500',
+            fontSize: '14px',
+            color: 'var(--cor-texto-secundario)'
+          }}>
+            Pedidos Anteriores
+          </h6>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {pedidos.length === 0 ? (
@@ -272,7 +393,7 @@ function Pedidos() {
                 textAlign: 'center',
                 color: 'var(--cor-texto-secundario)',
                 fontSize: '14px',
-                padding: '32px 0'
+                padding: '24px 0'
               }}>
                 Nenhum pedido encontrado.
               </p>
@@ -282,7 +403,7 @@ function Pedidos() {
                   key={pedido.id}
                   onClick={() => abrirPedido(pedido)}
                   style={{
-                    padding: '16px',
+                    padding: '14px',
                     borderRadius: '12px',
                     cursor: 'pointer',
                     border: pedidoAberto?.id === pedido.id
@@ -298,21 +419,21 @@ function Pedidos() {
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    marginBottom: '8px'
+                    marginBottom: '6px'
                   }}>
                     <span style={{
                       fontSize: '13px',
                       fontWeight: '600',
                       color: 'var(--cor-texto)'
                     }}>
-                      Pedido #{pedido.id.slice(0, 8).toUpperCase()}
+                      #{pedido.id.slice(0, 8).toUpperCase()}
                     </span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span style={{
                         ...getStatusStyle(pedido.status),
                         padding: '3px 10px',
                         borderRadius: '6px',
-                        fontSize: '12px',
+                        fontSize: '11px',
                         fontWeight: '500'
                       }}>
                         {getStatusLabel(pedido.status)}
@@ -329,12 +450,24 @@ function Pedidos() {
                           alignItems: 'center'
                         }}
                       >
-                        <AiOutlineDelete size={16} />
+                        <AiOutlineDelete size={15} />
                       </button>
                     </div>
                   </div>
+
+                  {pedido.marcas && (
+                    <div style={{
+                      fontSize: '12px',
+                      color: 'var(--cor-primaria)',
+                      fontWeight: '500',
+                      marginBottom: '4px'
+                    }}>
+                      {pedido.marcas.fornecedores?.nome} • {pedido.marcas.nome}
+                    </div>
+                  )}
+
                   <div style={{
-                    fontSize: '12px',
+                    fontSize: '11px',
                     color: 'var(--cor-texto-secundario)',
                     display: 'flex',
                     justifyContent: 'space-between'
@@ -342,15 +475,6 @@ function Pedidos() {
                     <span>{new Date(pedido.created_at).toLocaleDateString('pt-BR')}</span>
                     <span>{pedido.quantidade_itens || 0} itens • R$ {Number(pedido.valor_total || 0).toFixed(2)}</span>
                   </div>
-                  {pedido.observacoes && (
-                    <p style={{
-                      margin: '6px 0 0 0',
-                      fontSize: '12px',
-                      color: 'var(--cor-texto-secundario)'
-                    }}>
-                      {pedido.observacoes}
-                    </p>
-                  )}
                 </div>
               ))
             )}
@@ -366,7 +490,7 @@ function Pedidos() {
             boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
           }}>
 
-            {/* Header do Pedido */}
+            {/* Header */}
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
@@ -375,13 +499,25 @@ function Pedidos() {
             }}>
               <div>
                 <h5 style={{
-                  margin: '0 0 8px 0',
+                  margin: '0 0 4px 0',
                   fontWeight: '600',
                   fontSize: '18px',
                   color: 'var(--cor-texto)'
                 }}>
                   Pedido #{pedidoAberto.id.slice(0, 8).toUpperCase()}
                 </h5>
+
+                {pedidoAberto.marcas && (
+                  <div style={{
+                    fontSize: '13px',
+                    color: 'var(--cor-primaria)',
+                    fontWeight: '500',
+                    marginBottom: '8px'
+                  }}>
+                    {pedidoAberto.marcas.fornecedores?.nome} • {pedidoAberto.marcas.nome}
+                  </div>
+                )}
+
                 <div style={{
                   display: 'flex',
                   gap: '16px',
@@ -389,15 +525,15 @@ function Pedidos() {
                   color: 'var(--cor-texto-secundario)'
                 }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <BsCalendar3 size={13} />
+                    <BsCalendar3 size={12} />
                     {new Date(pedidoAberto.created_at).toLocaleDateString('pt-BR')}
                   </span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <BsBoxSeam size={13} />
+                    <BsBoxSeam size={12} />
                     {pedidoAberto.quantidade_itens || 0} itens
                   </span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <BsCurrencyDollar size={13} />
+                    <BsCurrencyDollar size={12} />
                     R$ {Number(pedidoAberto.valor_total || 0).toFixed(2)}
                   </span>
                 </div>
@@ -407,14 +543,7 @@ function Pedidos() {
                 <select
                   value={pedidoAberto.status}
                   onChange={(e) => atualizarStatusPedido(e.target.value)}
-                  style={{
-                    padding: '8px 12px',
-                    borderRadius: '8px',
-                    border: '1px solid #E8E8E8',
-                    fontSize: '13px',
-                    cursor: 'pointer',
-                    outline: 'none'
-                  }}
+                  style={selectStyle}
                 >
                   <option value="pendente">Pendente</option>
                   <option value="em_separacao">Em Separação</option>
@@ -510,8 +639,6 @@ function Pedidos() {
                             onBlur={(e) => atualizarItem(item.id, 'nome_produto', e.target.value)}
                             placeholder="Nome do produto"
                             style={{ ...inputStyle, width: '100%', minWidth: '140px' }}
-                            onFocus={(e) => e.target.style.border = '1px solid var(--cor-primaria)'}
-                            onBlurCapture={(e) => e.target.style.border = '1px solid #E8E8E8'}
                           />
                         </td>
                         <td style={{ padding: '8px' }}>
@@ -535,7 +662,7 @@ function Pedidos() {
                           <select
                             defaultValue={item.unidade}
                             onBlur={(e) => atualizarItem(item.id, 'unidade', e.target.value)}
-                            style={{ ...inputStyle }}
+                            style={inputStyle}
                           >
                             <option value="unidades">Unidades</option>
                             <option value="caixas">Caixas</option>
@@ -597,7 +724,7 @@ function Pedidos() {
               </table>
             </div>
 
-            {/* Rodapé com Total e Botão */}
+            {/* Rodapé */}
             {itens.length > 0 && (
               <div style={{
                 marginTop: '16px',
@@ -608,7 +735,6 @@ function Pedidos() {
                 justifyContent: 'space-between',
                 alignItems: 'center'
               }}>
-                {/* Botão Realizar Pedido */}
                 <button
                   onClick={realizarPedido}
                   disabled={pedidoAberto.status === 'em_separacao'}
@@ -626,14 +752,17 @@ function Pedidos() {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px',
-                    cursor: pedidoAberto.status === 'em_separacao' ? 'not-allowed' : 'pointer'
+                    cursor: pedidoAberto.status === 'em_separacao'
+                      ? 'not-allowed'
+                      : 'pointer'
                   }}
                 >
                   <HiOutlineClipboardCheck size={18} />
-                  {pedidoAberto.status === 'em_separacao' ? 'Pedido Realizado' : 'Realizar Pedido'}
+                  {pedidoAberto.status === 'em_separacao'
+                    ? 'Pedido Realizado'
+                    : 'Realizar Pedido'}
                 </button>
 
-                {/* Totais */}
                 <div style={{ display: 'flex', gap: '32px' }}>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{

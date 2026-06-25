@@ -1,8 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { AiOutlineHome } from 'react-icons/ai';
 import { MdOutlineSupervisedUserCircle } from 'react-icons/md';
-import { LuPackage } from "react-icons/lu";
-import { LuPackage, LuLogOut } from "react-icons/lu";
+import { LuPackage, LuLogOut, LuUser } from "react-icons/lu";
 import { IoMdAdd } from 'react-icons/io';
 import { VscArchive } from "react-icons/vsc";
 import { HiOutlineCalendar, HiOutlineDocumentSearch } from "react-icons/hi";
@@ -19,6 +18,7 @@ function Sidebar() {
     { path: '/dashboard', icon: <AiOutlineHome size={24} />, label: 'Dashboard' },
     { path: '/estoque', icon: <LuPackage size={24}/>, label: 'Controle de Estoque' },
     { path: '/pedidos', icon: <HiOutlineClipboardList size={24}/>, label: 'Pedidos' },
+    { path: '/perfil', icon: <LuUser size={24}/>, label: 'Perfil' }
   ]
 
   const isActive = (path) => location.pathname === path

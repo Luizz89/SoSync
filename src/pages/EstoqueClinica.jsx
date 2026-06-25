@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../config/supabase'
-import { useAuth } from '../context/AuthContext'
 import Layout from '../components/layout/Layout'
 import TabelaEstoqueClinica from '../components/TabelaEstoqueClinica'
 import ModalNovoProdutoClinica from '../components/ModalNovoProdutoClinica'

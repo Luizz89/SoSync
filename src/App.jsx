@@ -20,6 +20,7 @@ export default function App() {
               <Route path="/dashboard" element={<DashboardClinica />} />
               <Route path='/estoque' element={<EstoqueClinica/>} />
               <Route path="/perfil" element={<PerfilClinica />}/>
+              <Route path="/pedidos" element={<Pedidos />}/>
             </Route>
 
             {/* Fallback */}

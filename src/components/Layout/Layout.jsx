@@ -1,5 +1,6 @@
 import Sidebar from './Sidebar'
 import Header from './Header'
+import WhatsAppButton from '../WhatsAppButton'
 
 function Layout({ children, headerTitle }) {
   return (
@@ -13,6 +14,8 @@ function Layout({ children, headerTitle }) {
           {children}
         </main>
       </div>
+
+      <WhatsAppButton />
     </div>
   )
 }

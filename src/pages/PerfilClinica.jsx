@@ -213,6 +213,12 @@ export default function PerfilClinica() {
   // ─── Clinic fields (clinicas) ─────────────────────────────────────────────
   const [nomeClinica, setNomeClinica] = useState('')
   const [telefone,    setTelefone]    = useState('')
+  const [cep,        setCep]        = useState('')
+  const [logradouro, setLogradouro] = useState('')
+  const [numero,     setNumero]     = useState('')
+  const [bairro,     setBairro]     = useState('')
+  const [cidade,     setCidade]     = useState('')
+  const [estado,     setEstado]     = useState('')
 
   // ─── Security fields ──────────────────────────────────────────────────────
   const [senhaAtual,     setSenhaAtual]     = useState('')
@@ -229,45 +235,37 @@ export default function PerfilClinica() {
   const [msgClinica, setMsgClinica] = useState(null)
   const [msgSenha,   setMsgSenha]   = useState(null)
 
-  // ─── Load fresh data from Supabase on mount ────────────────────────────────
   useEffect(() => {
-    if (!session?.user?.id) return
+  if (!session?.user?.id) return
 
-    async function carregar() {
-      setCarregando(true)
+  async function carregar() {
+    setCarregando(true)
 
-      const { data: u, error: uErr } = await supabase
-        .from('usuarios')
-        .select('id, nome, clinica_id')
-        .eq('id', session.user.id)
-        .single()
+    const { data: c, error } = await supabase
+      .from('clinicas')
+      .select('id, nome, telefone, cep, logradouro, numero, bairro, cidade, estado')
+      .eq('id', session.user.id)
+      .single()
 
-      if (uErr || !u) {
-        console.error('Erro ao buscar usuário:', uErr?.message)
-        setCarregando(false)
-        return
-      }
-
-      setUsuarioLocal(u)
-      setNome(u.nome ?? '')
-
-      if (u.clinica_id) {
-        const { data: c } = await supabase
-          .from('clinicas')
-          .select('id, nome, telefone')
-          .eq('id', u.clinica_id)
-          .single()
-
-        if (c) {
-          setNomeClinica(c.nome ?? '')
-          setTelefone(c.telefone ?? '')
-        }
-      }
-
+    if (error || !c) {
+      console.error('Erro ao buscar clínica:', error?.message)
       setCarregando(false)
+      return
     }
 
-    carregar()
+    setNomeClinica(c.nome      ?? '')
+    setTelefone(c.telefone     ?? '')
+    setCep(c.cep               ?? '')
+    setLogradouro(c.logradouro ?? '')
+    setNumero(c.numero         ?? '')
+    setBairro(c.bairro         ?? '')
+    setCidade(c.cidade         ?? '')
+    setEstado(c.estado         ?? '')
+
+    setCarregando(false)
+  }
+
+  carregar()
   }, [session?.user?.id])
 
   // ─── Handler: save account (usuarios.nome) ────────────────────────────────
@@ -300,34 +298,41 @@ export default function PerfilClinica() {
     setMsgConta({ tipo: 'sucesso', texto: 'Nome atualizado com sucesso.' })
   }
 
-  // ─── Handler: save clinic (clinicas.nome + clinicas.telefone) ─────────────
   async function handleSalvarClinica(e) {
-    e.preventDefault()
-    if (!usuarioLocal?.clinica_id) return
+  e.preventDefault()
 
-    const nomeTrimmed = nomeClinica.trim()
-    if (!nomeTrimmed) {
-      setMsgClinica({ tipo: 'erro', texto: 'O nome da clínica não pode ficar em branco.' })
-      return
-    }
+  const nomeTrimmed = nomeClinica.trim()
+  if (!nomeTrimmed) {
+    setMsgClinica({ tipo: 'erro', texto: 'O nome da clínica não pode ficar em branco.' })
+    return
+  }
 
-    setMsgClinica(null)
-    setSalvandoClinica(true)
+  setMsgClinica(null)
+  setSalvandoClinica(true)
 
-    const { error } = await supabase
-      .from('clinicas')
-      .update({ nome: nomeTrimmed, telefone: telefone.trim() })
-      .eq('id', usuarioLocal.clinica_id)
+  const { error } = await supabase
+    .from('clinicas')
+    .update({
+      nome:       nomeTrimmed,
+      telefone:   telefone.trim(),
+      cep:        cep.trim(),
+      logradouro: logradouro.trim(),
+      numero:     numero.trim(),
+      bairro:     bairro.trim(),
+      cidade:     cidade.trim(),
+      estado:     estado.trim(),
+    })
+    .eq('id', session.user.id)   // session.user.id === clinicas.id
 
-    setSalvandoClinica(false)
+  setSalvandoClinica(false)
 
-    if (error) {
-      setMsgClinica({ tipo: 'erro', texto: 'Não foi possível salvar. Tente novamente.' })
-      return
-    }
+  if (error) {
+    setMsgClinica({ tipo: 'erro', texto: 'Não foi possível salvar. Tente novamente.' })
+    return
+  }
 
-    refreshPerfil(session.user.id)
-    setMsgClinica({ tipo: 'sucesso', texto: 'Dados da clínica atualizados com sucesso.' })
+  refreshPerfil(session.user.id)
+  setMsgClinica({ tipo: 'sucesso', texto: 'Dados da clínica atualizados com sucesso.' })
   }
 
   // ─── Handler: change password (re-auth → updateUser) ──────────────────────
@@ -510,6 +515,79 @@ export default function PerfilClinica() {
                   value={telefone}
                   onChange={e => { setTelefone(e.target.value); setMsgClinica(null) }}
                   placeholder="(00) 00000-0000"
+                  style={inBase}
+                />
+              </Field>
+
+              {/* ── Endereço ── */}
+              <Field label="CEP" htmlFor="input-cep" colClass="col-12 col-sm-4 col-lg-3">
+                <input
+                  id="input-cep"
+                  type="text"
+                  className="form-control"
+                  value={cep}
+                  onChange={e => { setCep(e.target.value); setMsgClinica(null) }}
+                  placeholder="00000-000"
+                  maxLength={9}
+                  style={inBase}
+                />
+              </Field>
+
+              <Field label="Logradouro" htmlFor="input-logradouro" colClass="col-12 col-sm-8 col-lg-6">
+                <input
+                  id="input-logradouro"
+                  type="text"
+                  className="form-control"
+                  value={logradouro}
+                  onChange={e => { setLogradouro(e.target.value); setMsgClinica(null) }}
+                  placeholder="Rua, Avenida..."
+                  style={inBase}
+                />
+              </Field>
+
+              <Field label="Número" htmlFor="input-numero" colClass="col-6 col-sm-3 col-lg-2">
+                <input
+                  id="input-numero"
+                  type="text"
+                  className="form-control"
+                  value={numero}
+                  onChange={e => { setNumero(e.target.value); setMsgClinica(null) }}
+                  placeholder="Nº"
+                  style={inBase}
+                />
+              </Field>
+
+              <Field label="Bairro" htmlFor="input-bairro" colClass="col-6 col-sm-5 col-lg-4">
+                <input
+                  id="input-bairro"
+                  type="text"
+                  className="form-control"
+                  value={bairro}
+                  onChange={e => { setBairro(e.target.value); setMsgClinica(null) }}
+                  style={inBase}
+                />
+              </Field>
+
+              <Field label="Cidade" htmlFor="input-cidade" colClass="col-12 col-sm-6">
+                <input
+                  id="input-cidade"
+                  type="text"
+                  className="form-control"
+                  value={cidade}
+                  onChange={e => { setCidade(e.target.value); setMsgClinica(null) }}
+                  style={inBase}
+                />
+              </Field>
+
+              <Field label="Estado (UF)" htmlFor="input-estado" colClass="col-12 col-sm-6 col-lg-3">
+                <input
+                  id="input-estado"
+                  type="text"
+                  className="form-control"
+                  value={estado}
+                  onChange={e => { setEstado(e.target.value.toUpperCase()); setMsgClinica(null) }}
+                  placeholder="PE"
+                  maxLength={2}
                   style={inBase}
                 />
               </Field>

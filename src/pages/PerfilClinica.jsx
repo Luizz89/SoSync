@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../config/supabase'
-import Layout from '../components/layout/Layout'
+import Layout from '../components/Layout/Layout'
 
 // ── Feedback ──────────────────────────────────────────────────────────────────
 // Inline alert placed directly below the relevant form action.

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../config/supabase'
-import Layout from '../components/layout/Layout'
+import Layout from '../components/Layout/Layout'
 import TabelaProdutos from '../components/TabelaProdutos'
 import ModalNovoProduto from '../components/ModalNovoProduto'
 

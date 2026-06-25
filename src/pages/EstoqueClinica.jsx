@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../config/supabase'
-import Layout from '../components/layout/Layout'
+import Layout from '../components/Layout/Layout'
 import TabelaEstoqueClinica from '../components/TabelaEstoqueClinica'
 import ModalNovoProdutoClinica from '../components/ModalNovoProdutoClinica'
 import * as XLSX from 'xlsx'

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../config/supabase'
 import { useAuth } from '../context/AuthContext'
-import Layout from '../components/layout/Layout'
+import Layout from '../components/Layout/Layout'
 import { MdOutlineAddCircleOutline } from 'react-icons/md'
 import { AiOutlineDelete } from 'react-icons/ai'
 import { BsCalendar3, BsBoxSeam, BsCurrencyDollar } from 'react-icons/bs'

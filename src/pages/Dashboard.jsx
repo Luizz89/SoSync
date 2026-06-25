@@ -3,7 +3,7 @@ import { supabase } from '../config/supabase'
 import { BiClinic } from "react-icons/bi"
 import { LuPackageCheck } from "react-icons/lu"
 import { AiOutlineAlert } from "react-icons/ai"
-import Layout from '../components/layout/Layout'
+import Layout from '../components/Layout/Layout'
 import StatCard from '../components/StatCard'
 import ClinicasCard from '../components/ClinicasCard'
 import AlertasCriticos from '../components/AlertasCriticos'

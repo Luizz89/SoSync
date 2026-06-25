@@ -31,7 +31,11 @@ function DashboardClinica() {
   }
 
   useEffect(() => {
-    carregarProdutos()
+    async function init() {
+    await carregarProdutos()
+  }
+
+  init()
 
     const subscription = supabase
       .channel('dashboard-clinica')

@@ -1,6 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
 import { AiOutlineHome } from 'react-icons/ai';
-import { MdOutlineSupervisedUserCircle } from 'react-icons/md';
 import { LuPackage, LuLogOut } from "react-icons/lu";
 import { IoMdAdd } from 'react-icons/io';
 import { VscArchive } from "react-icons/vsc";

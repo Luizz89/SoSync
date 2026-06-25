@@ -7,6 +7,7 @@ import Layout from '../components/Layout/Layout'
 import StatCard from '../components/StatCard'
 import ClinicasCard from '../components/ClinicasCard'
 import AlertasCriticos from '../components/AlertasCriticos'
+ 
 
 function Dashboard() {
   const [totalClinicas, setTotalClinicas] = useState(0)

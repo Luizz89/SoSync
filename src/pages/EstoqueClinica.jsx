@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useAuth } from '../context/AuthContext'
 import { supabase } from '../config/supabase'
 import { useAuth } from '../context/AuthContext'
 import Layout from '../components/layout/Layout'
@@ -18,8 +19,9 @@ function EstoqueClinica() {
   const [resultadoImportacao, setResultadoImportacao] = useState(null)
   const inputFileRef = useRef(null)
 
-  const CLINICA_ID = clinica?.id
-
+  const { session, loading: authLoading } = useAuth()
+  const CLINICA_ID = session?.user?.id
+  
   async function carregarProdutos() {
     if (!CLINICA_ID) return
 
@@ -42,15 +44,33 @@ function EstoqueClinica() {
       .from('estoque_clinica')
       .delete()
       .eq('id', id)
+      .eq('clinica_id', CLINICA_ID)
 
     if (error) {
       console.error('Erro ao deletar produto:', error)
       alert('Erro ao deletar produto.')
     } else {
-      setProdutos(produtos.filter(p => p.id !== id))
+      setProdutos(prev => prev.filter(p => p.id !== id))
     }
   }
 
+  useEffect(() => {
+    if (authLoading || !CLINICA_ID) return
+    
+    carregarProdutos()
+
+    const subscription = supabase
+      .channel('estoque-clinica-${CLINICA_ID}')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'estoque_clinica',
+        filter: 'clinica_id=eq.${CLINICA_ID}' 
+      }, carregarProdutos)
+      .subscribe()
+
+    return () => supabase.removeChannel(subscription)
+  }, [CLINICA_ID, authLoading])
   async function importarExcel(e) {
     const file = e.target.files[0]
     if (!file) return

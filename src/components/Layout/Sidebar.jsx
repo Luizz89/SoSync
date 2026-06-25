@@ -1,11 +1,14 @@
 import { Link, useLocation } from 'react-router-dom';
 import { AiOutlineHome } from 'react-icons/ai';
+import { MdOutlineSupervisedUserCircle } from 'react-icons/md';
+import { LuPackage } from "react-icons/lu";
 import { LuPackage, LuLogOut } from "react-icons/lu";
 import { IoMdAdd } from 'react-icons/io';
 import { VscArchive } from "react-icons/vsc";
 import { HiOutlineCalendar, HiOutlineDocumentSearch } from "react-icons/hi";
 import { useState } from 'react';
 import ModalNovoProduto from '../ModalNovoProduto';
+import LogoutButton from '../LogoutButton';
 import { HiOutlineClipboardList } from "react-icons/hi";
 
 function Sidebar() {
@@ -15,10 +18,6 @@ function Sidebar() {
   const menuItems = [
     { path: '/dashboard', icon: <AiOutlineHome size={24} />, label: 'Dashboard' },
     { path: '/estoque', icon: <LuPackage size={24}/>, label: 'Controle de Estoque' },
-    { path: '/estoque-clinica', icon: <VscArchive size={24}/>, label: 'Estoque Clínica' },
-    { path: '/agenda', icon: <HiOutlineCalendar size={24} />, label: 'Agenda' },
-    { path: '/docs', icon: <HiOutlineDocumentSearch size={24} />, label: 'Docs' },
-    { path: '/logout', icon: <LuLogOut size={24} />, label: 'Sair' },
     { path: '/pedidos', icon: <HiOutlineClipboardList size={24}/>, label: 'Pedidos' },
   ]
 
@@ -108,7 +107,9 @@ function Sidebar() {
           </Link>
         ))}
       </nav>
-
+        
+      <LogoutButton/>
+      
       <ModalNovoProduto
         isOpen={modalAberto}
         onClose={() => setModalAberto(false)}

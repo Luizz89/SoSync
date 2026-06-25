@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../config/supabase'
+import { useAuth } from '../context/AuthContext'
 import { MdLocalGroceryStore } from 'react-icons/md'
 import { IoMdAlert } from 'react-icons/io'
 import { AiFillAlert } from 'react-icons/ai'
@@ -12,15 +13,15 @@ function DashboardClinica() {
   const [produtos, setProdutos] = useState([])
   const [loading, setLoading] = useState(true)
 
-  // Por enquanto ID fixo, depois virá do login
-  const CLINICA_ID = 'cdab23c6-f93f-4217-9d36-5478c745e42f'
+  const { session, loading: authLoading } = useAuth()
+  const CLINICA_ID = session?.user?.id
 
   async function carregarProdutos() {
     const { data, error } = await supabase
       .from('estoque_clinica')
       .select('*')
       .eq('clinica_id', CLINICA_ID)
-      .order('quantidade', { ascending: true })
+      .order('nome', { ascending: true })
 
     if (error) {
       console.error('Erro ao carregar produtos:', error)
@@ -31,19 +32,22 @@ function DashboardClinica() {
   }
 
   useEffect(() => {
-    async function init() {
-    await carregarProdutos()
-  }
-
-  init()
+    if (authLoading || !CLINICA_ID) return
+    
+    carregarProdutos()
 
     const subscription = supabase
-      .channel('dashboard-clinica')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'estoque_clinica' }, carregarProdutos)
+      .channel('dashboard-clinica-${CLINICA_ID}')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'estoque_clinica',
+        filter: 'clinica_id=eq.${CLINICA_ID}'  
+      }, carregarProdutos)
       .subscribe()
 
     return () => supabase.removeChannel(subscription)
-  }, [])
+  }, [CLINICA_ID, authLoading])
 
   if (loading) {
     return (

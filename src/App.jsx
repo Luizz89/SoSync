@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard'
 import DashboardClinica from './pages/DashboardClinica'
 import Products from './pages/Products'
 import EstoqueClinica from './pages/EstoqueClinica'
+import Pedidos from './pages/Pedidos'
 
 
 export default function App() {
@@ -17,6 +18,7 @@ export default function App() {
           <Route path="/login" element={<LoginClinica />} />
           <Route path="/dashboard" element={<ProtectedRoute><DashboardClinica/></ProtectedRoute>} />
            <Route path='/estoque' element={<ProtectedRoute><EstoqueClinica/></ProtectedRoute>} />
+           <Route path='/pedidos' element={<ProtectedRoute><Pedidos/></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

@@ -1,6 +1,11 @@
 function TabelaEstoque({ produtos }) {
-  function calcularNivel(atual, maximo) {
-    return Math.round((atual / maximo) * 100)
+  // Nível = quantidade atual em relação ao estoque mínimo (mesma regra do Dashboard).
+  // Protegido contra valores vazios/zero para nunca gerar NaN e limitado entre 0 e 100.
+  function calcularNivel(atual, referencia) {
+    const a = Number(atual)
+    const r = Number(referencia)
+    if (!Number.isFinite(a) || !Number.isFinite(r) || r <= 0) return 0
+    return Math.min(100, Math.max(0, Math.round((a / r) * 100)))
   }
 
   return (
@@ -53,14 +58,15 @@ function TabelaEstoque({ produtos }) {
         </thead>
         <tbody>
           {produtos.map((produto) => {
-            const nivel = calcularNivel(produto.qtdAtual, produto.qtdMaxima)
+            const nivel = calcularNivel(produto.quantidade, produto.quantidade_minima)
             return (
               <tr key={produto.id} style={{ borderBottom: '1px solid #F8F8F8' }}>
                 <td style={{ padding: '16px 0', color: 'var(--cor-texto)', fontSize: '14px' }}>
                   {produto.nome}
                 </td>
                 <td style={{ padding: '16px 0', color: 'var(--cor-texto-secundario)', fontSize: '14px' }}>
-                  {produto.qtdAtual}/{produto.qtdMaxima} {produto.unidade}
+                  {produto.quantidade} {produto.unidade}
+                  <span style={{ fontSize: '12px', marginLeft: '6px', opacity: 0.7 }}>(mín. {produto.quantidade_minima})</span>
                 </td>
                 <td style={{ padding: '16px 0' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>

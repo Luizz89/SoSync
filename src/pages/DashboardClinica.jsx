@@ -37,12 +37,12 @@ function DashboardClinica() {
     carregarProdutos()
 
     const subscription = supabase
-      .channel('dashboard-clinica-${CLINICA_ID}')
+      .channel(`dashboard-clinica-${CLINICA_ID}`)
       .on('postgres_changes', { 
         event: '*', 
         schema: 'public', 
         table: 'estoque_clinica',
-        filter: 'clinica_id=eq.${CLINICA_ID}'  
+        filter: `clinica_id=eq.${CLINICA_ID}`
       }, carregarProdutos)
       .subscribe()
 

@@ -3,9 +3,12 @@
 // Envia um e-mail para a equipe quando um pedido muda para 'em_cotacao'.
 // Disparada por um Database Webhook (tabela pedidos, evento UPDATE).
 //
-// ASSUMPTIONS A CONFERIR: a tabela clinicas tem as colunas
-// nome, telefone e endereco. Se os nomes forem outros, ajuste
-// as 3 linhas marcadas com "AJUSTAR".
+// Envio via Brevo (API HTTP). Diferente do Resend de teste, o Brevo permite
+// enviar de um e-mail pessoal verificado (ex.: Gmail), sem precisar de domínio.
+//
+// Usa as colunas de clinicas: nome, telefone, logradouro, numero,
+// bairro, cidade, estado, cep. Requer as colunas marca_id, observacao
+// e ordem em pedido_itens (criadas pela migration pedidos_setup.sql).
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
@@ -22,9 +25,19 @@ const escapar = (valor: unknown) =>
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
 
+// Comparação em tempo constante para o segredo do webhook
+const segredoValido = (recebido: string | null) => {
+  const esperado = Deno.env.get('WEBHOOK_SECRET') ?? ''
+  if (!recebido || !esperado || recebido.length !== esperado.length) return false
+  let diferenca = 0
+  for (let i = 0; i < esperado.length; i++) {
+    diferenca |= recebido.charCodeAt(i) ^ esperado.charCodeAt(i)
+  }
+  return diferenca === 0
+}
+
 Deno.serve(async (req) => {
-  // Só aceita chamadas do webhook configurado por vocês
-  if (req.headers.get('x-webhook-secret') !== Deno.env.get('WEBHOOK_SECRET')) {
+  if (!segredoValido(req.headers.get('x-webhook-secret'))) {
     return new Response('Não autorizado', { status: 401 })
   }
 
@@ -41,11 +54,14 @@ Deno.serve(async (req) => {
     return new Response('Ignorado', { status: 200 })
   }
 
-  const [clinicaRes, fornecedorRes, itensRes] = await Promise.all([
+  const [clinicaRes, fornecedorRes, marcaRes, itensRes] = await Promise.all([
     supabase.from('clinicas').select('*').eq('id', pedido.clinica_id).single(),
     pedido.fornecedor_id
       ? supabase.from('fornecedores').select('nome').eq('id', pedido.fornecedor_id).single()
-      : Promise.resolve({ data: null }),
+      : Promise.resolve({ data: null, error: null }),
+    pedido.marca_id
+      ? supabase.from('marcas').select('nome').eq('id', pedido.marca_id).single()
+      : Promise.resolve({ data: null, error: null }),
     supabase
       .from('pedido_itens')
       .select('*, marcas(nome)')
@@ -53,13 +69,35 @@ Deno.serve(async (req) => {
       .order('ordem')
   ])
 
+  // Se alguma consulta falhar, não manda e-mail incompleto: devolve erro
+  const erroConsulta =
+    clinicaRes.error ?? fornecedorRes.error ?? marcaRes.error ?? itensRes.error
+  if (erroConsulta) {
+    console.error('Erro ao buscar dados do pedido:', erroConsulta)
+    return new Response('Falha ao buscar dados do pedido', { status: 500 })
+  }
+
   const clinica = clinicaRes.data
-  const dental = fornecedorRes.data?.nome ?? 'Sem preferência'
+  const dental = fornecedorRes.data?.nome || pedido.dental_escolhida || 'Sem preferência'
+  // Marca pode estar no pedido (pedidos.marca_id) ou em cada item (pedido_itens.marca_id)
+  const marcaPedido = marcaRes.data?.nome ?? null
   const itens = itensRes.data ?? []
 
-  const nomeClinica = clinica?.nome ?? 'Clínica' // AJUSTAR
-  const telefone = clinica?.telefone ?? 'não informado' // AJUSTAR
-  const endereco = clinica?.endereco ?? '' // AJUSTAR
+  if (itens.length === 0) {
+    console.error('Pedido sem itens:', pedido.id)
+    return new Response('Pedido sem itens', { status: 500 })
+  }
+
+  const nomeClinica = clinica?.nome ?? 'Clínica'
+  const telefone = clinica?.telefone ?? 'não informado'
+  const endereco = [
+    [clinica?.logradouro, clinica?.numero].filter(Boolean).join(', '),
+    clinica?.bairro,
+    [clinica?.cidade, clinica?.estado].filter(Boolean).join(' - '),
+    clinica?.cep ? `CEP ${clinica.cep}` : ''
+  ]
+    .filter(Boolean)
+    .join(' • ')
   const codigo = pedido.id.slice(0, 8).toUpperCase()
 
   const linhasItens = itens
@@ -67,7 +105,7 @@ Deno.serve(async (req) => {
       (i: any) => `
       <tr>
         <td style="padding:8px;border-bottom:1px solid #eee">${escapar(i.nome_produto)}</td>
-        <td style="padding:8px;border-bottom:1px solid #eee">${escapar(i.marcas?.nome ?? '—')}</td>
+        <td style="padding:8px;border-bottom:1px solid #eee">${escapar(i.marcas?.nome ?? marcaPedido ?? '—')}</td>
         <td style="padding:8px;border-bottom:1px solid #eee">${escapar(i.quantidade)} ${escapar(i.unidade)}</td>
         <td style="padding:8px;border-bottom:1px solid #eee">${escapar(i.observacao ?? '')}</td>
       </tr>`
@@ -103,24 +141,42 @@ Deno.serve(async (req) => {
       }
     </div>`
 
-  const resposta = await fetch('https://api.resend.com/emails', {
+  const destinatarios = (Deno.env.get('EMAIL_DESTINO') ?? '')
+    .split(',')
+    .map((e) => e.trim())
+    .filter(Boolean)
+    .map((email) => ({ email }))
+
+  const resposta = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${Deno.env.get('RESEND_API_KEY')}`
+      'api-key': Deno.env.get('BREVO_API_KEY')!
     },
     body: JSON.stringify({
-      from: Deno.env.get('EMAIL_REMETENTE'),
-      to: (Deno.env.get('EMAIL_DESTINO') ?? '').split(',').map((e) => e.trim()),
+      sender: {
+        name: Deno.env.get('EMAIL_REMETENTE_NOME') ?? 'SoSync',
+        email: Deno.env.get('EMAIL_REMETENTE')
+      },
+      to: destinatarios,
       subject: `Novo pedido #${codigo} — ${nomeClinica}`,
-      html
+      htmlContent: html
     })
   })
 
   if (!resposta.ok) {
-    console.error('Erro ao enviar e-mail:', await resposta.text())
+    console.error('Erro ao enviar e-mail:', resposta.status, await resposta.text())
     return new Response('Falha ao enviar e-mail', { status: 500 })
   }
+
+  // Marca como notificado. Pedidos em 'em_cotacao' com notificado_em nulo
+  // são os que a equipe não recebeu e precisam ser conferidos.
+  const { error: erroMarca } = await supabase
+    .from('pedidos')
+    .update({ notificado_em: new Date().toISOString() })
+    .eq('id', pedido.id)
+
+  if (erroMarca) console.error('E-mail enviado, mas falhou ao marcar notificado_em:', erroMarca)
 
   return new Response('E-mail enviado', { status: 200 })
 })
@@ -128,14 +184,17 @@ Deno.serve(async (req) => {
 /* ---------------------------------------------------------------------
    CONFIGURAÇÃO (uma vez só)
 
-   1. Resend (resend.com): crie a conta e gere uma API key.
-      Sem domínio verificado, só dá para enviar do endereço de teste
-      onboarding@resend.dev e apenas para o e-mail dono da conta.
+   1. Brevo (brevo.com): crie a conta gratuita (300 e-mails/dia).
+      - Senders & IP > Senders > Add a sender: cadastre o e-mail que vai
+        aparecer como remetente (pode ser Gmail) e confirme o link que
+        chega nele.
+      - SMTP & API > API Keys > Generate a new API key.
 
    2. Secrets e deploy (Supabase CLI):
-        supabase secrets set RESEND_API_KEY=... \
-          EMAIL_REMETENTE="BaixaSync <onboarding@resend.dev>" \
-          EMAIL_DESTINO="email-da-equipe@exemplo.com" \
+        supabase secrets set BREVO_API_KEY=... \
+          EMAIL_REMETENTE="email-verificado-no-brevo@exemplo.com" \
+          EMAIL_REMETENTE_NOME="SoSync" \
+          EMAIL_DESTINO="pessoa1@exemplo.com,pessoa2@exemplo.com" \
           WEBHOOK_SECRET="uma-string-longa-e-aleatoria"
         supabase functions deploy notificar-pedido --no-verify-jwt
 
